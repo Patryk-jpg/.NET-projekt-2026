@@ -1,0 +1,7 @@
+﻿services:
+  clinicmanager:
+    image: clinicmanager
+    build:
+      context: .
+      dockerfile: ClinicManager/Dockerfile
+
