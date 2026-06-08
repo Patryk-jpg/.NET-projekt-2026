@@ -218,3 +218,10 @@ http-client.private.env.json
 
 # Github Copilot persisted session migrations, see: https://github.com/microsoft/copilot-intellij-feedback/issues/712#issuecomment-3322062215
 .idea/**/copilot.data.migration.*.xml
+
+# Local project planning/docs
+ClinicManager/README.md
+ClinicManager/polecenie.md
+ClinicManager/TeamOrganization.md
+ClinicManager/TrelloPlan.md
+ClinicManager/TreloPlan.md
