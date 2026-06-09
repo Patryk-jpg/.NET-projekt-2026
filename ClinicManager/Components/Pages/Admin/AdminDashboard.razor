@@ -1,0 +1,19 @@
+@page "/admin"
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@attribute [Authorize(Roles = Roles.Admin)]
+
+<PageTitle>Panel administratora</PageTitle>
+
+<h1>Panel administratora</h1>
+
+<p>
+    Sekcja widoczna wylacznie dla uzytkownikow w roli <strong>Admin</strong>.
+    Tu beda zarzadzane konta uzytkownikow, role oraz katalogi systemowe (np. leki).
+</p>
+
+<ul>
+    <li>Zarzadzanie uzytkownikami i rolami (US-21).</li>
+    <li>Katalog lekow (US-10).</li>
+    <li>Raporty kosztow swiadczen (US-12).</li>
+</ul>

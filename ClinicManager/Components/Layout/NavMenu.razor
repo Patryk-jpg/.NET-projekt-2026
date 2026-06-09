@@ -1,0 +1,54 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using ClinicManager.Core.Constants
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">ClinicManager</a>
+
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Strona glowna</a>
+            </li>
+            <AuthorizeView Roles="@Roles.Admin">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">Panel administratora</a>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")">
+                <li class="nav-item">
+                    <a class="nav-link" href="/lekarz">Panel lekarza</a>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
+                <li class="nav-item">
+                    <a class="nav-link" href="/rejestratorka">Panel rejestracji</a>
+                </li>
+            </AuthorizeView>
+        </ul>
+
+        <ul class="navbar-nav ms-auto">
+            <AuthorizeView>
+                <Authorized>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Account/Manage">@context.User.Identity?.Name</a>
+                    </li>
+                    <li class="nav-item">
+                        <form action="/Account/Logout" method="post" class="d-inline">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="returnUrl" value="" />
+                            <button type="submit" class="btn btn-link nav-link">Wyloguj</button>
+                        </form>
+                    </li>
+                </Authorized>
+                <NotAuthorized>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Account/Register">Rejestracja</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Account/Login">Logowanie</a>
+                    </li>
+                </NotAuthorized>
+            </AuthorizeView>
+        </ul>
+    </div>
+</nav>

@@ -3,7 +3,17 @@
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <NotAuthorized>
-                <RedirectToLogin/>
+                <AuthorizeView Context="authContext">
+                    <Authorized>
+                        <div class="alert alert-danger m-3">
+                            <h2>Brak dostepu</h2>
+                            <p>Twoje konto nie ma wymaganej roli, aby zobaczyc te strone.</p>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <RedirectToLogin/>
+                    </NotAuthorized>
+                </AuthorizeView>
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1"/>

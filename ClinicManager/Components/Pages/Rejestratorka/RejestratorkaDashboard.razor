@@ -1,0 +1,19 @@
+@page "/rejestratorka"
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+<PageTitle>Panel rejestracji</PageTitle>
+
+<h1>Panel rejestracji</h1>
+
+<p>
+    Sekcja dostepna dla uzytkownikow w roli <strong>Rejestratorka</strong>
+    (oraz administratorow systemu).
+</p>
+
+<ul>
+    <li>CRUD pacjentow i wyszukiwanie (US-05).</li>
+    <li>Kartoteka pacjenta i upload dokumentow (US-06).</li>
+    <li>Tworzenie wizyt i zmiana statusow (US-07).</li>
+</ul>
