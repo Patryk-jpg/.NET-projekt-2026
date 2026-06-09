@@ -1,0 +1,19 @@
+@page "/lekarz"
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@attribute [Authorize(Roles = $"{Roles.Lekarz},{Roles.Admin}")]
+
+<PageTitle>Panel lekarza</PageTitle>
+
+<h1>Panel lekarza</h1>
+
+<p>
+    Sekcja dostepna dla uzytkownikow w roli <strong>Lekarz</strong>
+    (oraz administratorow systemu).
+</p>
+
+<ul>
+    <li>Lista wizyt przypisanych do lekarza (US-08).</li>
+    <li>Notatki kliniczne i procedury wizyty (US-09, US-10).</li>
+    <li>Generowanie PDF karty wizyty (US-11).</li>
+</ul>

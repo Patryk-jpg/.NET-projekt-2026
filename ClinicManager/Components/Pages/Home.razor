@@ -1,7 +1,36 @@
 ﻿@page "/"
+@using ClinicManager.Core.Constants
 
-<PageTitle>Home</PageTitle>
+<PageTitle>ClinicManager</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>ClinicManager</h1>
 
-Welcome to your new app.
+<p>System zarzadzania przychodnia medyczna.</p>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="alert alert-success">
+            Zalogowano jako <strong>@context.User.Identity?.Name</strong>.
+            Role: <em>@(string.Join(", ", context.User.Claims.Where(c => c.Type.EndsWith("/role") || c.Type == "role").Select(c => c.Value)))</em>.
+        </div>
+
+        <h2>Twoje skroty</h2>
+        <ul>
+            <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
+                <li><a href="/admin">Panel administratora</a></li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="doctorContext">
+                <li><a href="/lekarz">Panel lekarza</a></li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")" Context="receptionContext">
+                <li><a href="/rejestratorka">Panel rejestracji</a></li>
+            </AuthorizeView>
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-info">
+            Aby skorzystac z systemu, <a href="/Account/Login">zaloguj sie</a>
+            lub <a href="/Account/Register">zarejestruj nowe konto</a>.
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
