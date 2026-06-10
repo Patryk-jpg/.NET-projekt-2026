@@ -1,0 +1,87 @@
+@page "/patients/{Id:int}"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")]
+
+@inject IPatientService PatientService
+@inject NavigationManager Navigation
+
+<PageTitle>Pacjent</PageTitle>
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (patient is null)
+{
+    <h1>Pacjent</h1>
+    <div class="alert alert-warning">Nie znaleziono pacjenta.</div>
+    <a href="/patients" class="btn btn-link">Wroc do listy</a>
+}
+else
+{
+    <h1>@patient.FirstName @patient.LastName</h1>
+
+    @if (patient.IsDeleted)
+    {
+        <div class="alert alert-secondary">Pacjent jest oznaczony jako usuniety (soft delete).</div>
+    }
+
+    <dl class="row">
+        <dt class="col-sm-3">PESEL</dt>
+        <dd class="col-sm-9"><code>@patient.Pesel</code></dd>
+
+        <dt class="col-sm-3">Numer ubezpieczenia</dt>
+        <dd class="col-sm-9">@patient.InsuranceNumber</dd>
+
+        <dt class="col-sm-3">Data urodzenia</dt>
+        <dd class="col-sm-9">@patient.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-3">Telefon</dt>
+        <dd class="col-sm-9">@patient.Phone</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@patient.Email</dd>
+
+        <dt class="col-sm-3">Dodany</dt>
+        <dd class="col-sm-9">@patient.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+    </dl>
+
+    <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
+        <div class="d-flex gap-2">
+            <a class="btn btn-secondary" href="@($"/patients/{Id}/edit")">Edytuj</a>
+            @if (!patient.IsDeleted)
+            {
+                <button class="btn btn-outline-danger" @onclick="SoftDeleteAsync">Usun (soft delete)</button>
+            }
+            <a class="btn btn-link ms-auto" href="/patients">Wroc do listy</a>
+        </div>
+    </AuthorizeView>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private PatientDto? patient;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        patient = await PatientService.GetByIdAsync(Id);
+        loading = false;
+    }
+
+    private async Task SoftDeleteAsync()
+    {
+        if (patient is null)
+        {
+            return;
+        }
+
+        await PatientService.SoftDeleteAsync(patient.Id);
+        Navigation.NavigateTo("/patients");
+    }
+}

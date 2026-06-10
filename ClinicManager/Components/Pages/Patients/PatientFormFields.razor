@@ -1,0 +1,49 @@
+@using ClinicManager.Core.DTOs
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label" for="firstName">Imie</label>
+        <InputText id="firstName" class="form-control" @bind-Value="Form.FirstName" />
+        <ValidationMessage For="() => Form.FirstName" class="text-danger" />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="lastName">Nazwisko</label>
+        <InputText id="lastName" class="form-control" @bind-Value="Form.LastName" />
+        <ValidationMessage For="() => Form.LastName" class="text-danger" />
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label" for="pesel">PESEL</label>
+        <InputText id="pesel" class="form-control" @bind-Value="Form.Pesel" maxlength="11" />
+        <ValidationMessage For="() => Form.Pesel" class="text-danger" />
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label" for="insurance">Numer ubezpieczenia</label>
+        <InputText id="insurance" class="form-control" @bind-Value="Form.InsuranceNumber" />
+        <ValidationMessage For="() => Form.InsuranceNumber" class="text-danger" />
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label" for="dob">Data urodzenia</label>
+        <InputDate id="dob" class="form-control" @bind-Value="Form.DateOfBirth" />
+        <ValidationMessage For="() => Form.DateOfBirth" class="text-danger" />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="phone">Telefon</label>
+        <InputText id="phone" class="form-control" @bind-Value="Form.Phone" />
+        <ValidationMessage For="() => Form.Phone" class="text-danger" />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="email">Email</label>
+        <InputText id="email" class="form-control" type="email" @bind-Value="Form.Email" />
+        <ValidationMessage For="() => Form.Email" class="text-danger" />
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PatientFormDto Form { get; set; } = default!;
+}

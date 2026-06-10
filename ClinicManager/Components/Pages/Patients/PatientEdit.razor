@@ -1,0 +1,106 @@
+@page "/patients/{Id:int}/edit"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+@inject IPatientService PatientService
+@inject NavigationManager Navigation
+
+<PageTitle>Edycja pacjenta</PageTitle>
+
+<h1>Edycja pacjenta</h1>
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (form is null)
+{
+    <div class="alert alert-warning">Pacjent nie istnieje lub zostal usuniety.</div>
+    <a href="/patients" class="btn btn-link">Wroc do listy</a>
+}
+else
+{
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="patient-edit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <PatientFormFields Form="form" />
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary" disabled="@saving">
+                @(saving ? "Zapisywanie..." : "Zapisz zmiany")
+            </button>
+            <a class="btn btn-link" href="@($"/patients/{Id}")">Anuluj</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private PatientFormDto? form;
+    private bool loading = true;
+    private bool saving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var patient = await PatientService.GetByIdAsync(Id);
+        if (patient is not null)
+        {
+            form = new PatientFormDto
+            {
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                Pesel = patient.Pesel,
+                InsuranceNumber = patient.InsuranceNumber,
+                DateOfBirth = patient.DateOfBirth,
+                Phone = patient.Phone,
+                Email = patient.Email
+            };
+        }
+        loading = false;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (form is null)
+        {
+            return;
+        }
+
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            var updated = await PatientService.UpdateAsync(Id, form);
+            if (updated is null)
+            {
+                errorMessage = "Nie znaleziono pacjenta. Mogl zostac usuniety w innej sesji.";
+                return;
+            }
+            Navigation.NavigateTo($"/patients/{Id}");
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie zapisac zmian: {ex.Message}";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

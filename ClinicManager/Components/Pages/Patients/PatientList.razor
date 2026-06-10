@@ -1,0 +1,153 @@
+@page "/patients"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+@inject IPatientService PatientService
+@inject NavigationManager Navigation
+
+<PageTitle>Pacjenci</PageTitle>
+
+<h1>Pacjenci</h1>
+
+<p class="text-muted">
+    Wyszukiwanie po nazwisku, imieniu i numerze PESEL. Lista pomija pacjentow oznaczonych jako usunieci
+    (soft delete) chyba ze zaznaczysz checkbox.
+</p>
+
+<div class="row g-2 mb-3">
+    <div class="col-sm-6 col-md-5">
+        <input type="text"
+               class="form-control"
+               placeholder="Nazwisko, imie lub PESEL"
+               @bind="query"
+               @bind:event="oninput"
+               @onkeyup="OnKeyUp" />
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary" @onclick="LoadAsync">Szukaj</button>
+    </div>
+    <div class="col-auto form-check ms-2 mt-2">
+        <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="includeDeleted" @bind:after="LoadAsync" />
+        <label class="form-check-label" for="includeDeleted">pokaz usunietych</label>
+    </div>
+    <div class="col-auto ms-auto">
+        <a class="btn btn-success" href="/patients/new">+ Dodaj pacjenta</a>
+    </div>
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (loading)
+{
+    <div class="text-muted">Ladowanie...</div>
+}
+else if (patients.Count == 0)
+{
+    <div class="alert alert-info">Brak pacjentow pasujacych do filtra.</div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Nazwisko</th>
+                <th>Imie</th>
+                <th>PESEL</th>
+                <th>Telefon</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th class="text-end">Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in patients)
+            {
+                <tr class="@(patient.IsDeleted ? "text-muted" : "")">
+                    <td>@patient.LastName</td>
+                    <td>@patient.FirstName</td>
+                    <td><code>@patient.Pesel</code></td>
+                    <td>@patient.Phone</td>
+                    <td>@patient.Email</td>
+                    <td>
+                        @if (patient.IsDeleted)
+                        {
+                            <span class="badge bg-secondary">usuniety</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">aktywny</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" href="@($"/patients/{patient.Id}")">Szczegoly</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="@($"/patients/{patient.Id}/edit")">Edytuj</a>
+                        @if (!patient.IsDeleted)
+                        {
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => SoftDeleteAsync(patient.Id)">Usun</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string? query;
+    private bool includeDeleted;
+    private List<PatientDto> patients = new();
+    private bool loading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            var result = await PatientService.SearchAsync(query, includeDeleted);
+            patients = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie pobrac pacjentow: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OnKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task SoftDeleteAsync(int id)
+    {
+        try
+        {
+            await PatientService.SoftDeleteAsync(id);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie usunac pacjenta: {ex.Message}";
+        }
+    }
+}
