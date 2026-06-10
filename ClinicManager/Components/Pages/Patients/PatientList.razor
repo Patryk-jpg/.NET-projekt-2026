@@ -4,7 +4,7 @@
 @using ClinicManager.Core.Constants
 @using ClinicManager.Core.DTOs
 @using ClinicManager.Core.Interfaces
-@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")]
 
 @inject IPatientService PatientService
 @inject NavigationManager Navigation
@@ -14,8 +14,8 @@
 <h1>Pacjenci</h1>
 
 <p class="text-muted">
-    Wyszukiwanie po nazwisku, imieniu i numerze PESEL. Lista pomija pacjentow oznaczonych jako usunieci
-    (soft delete) chyba ze zaznaczysz checkbox.
+    Wyszukiwanie po nazwisku, imieniu i numerze PESEL. Pacjenci oznaczeni jako usunieci (soft delete)
+    sa domyslnie ukryci.
 </p>
 
 <div class="row g-2 mb-3">
@@ -30,13 +30,15 @@
     <div class="col-auto">
         <button type="button" class="btn btn-primary" @onclick="LoadAsync">Szukaj</button>
     </div>
-    <div class="col-auto form-check ms-2 mt-2">
-        <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="includeDeleted" @bind:after="LoadAsync" />
-        <label class="form-check-label" for="includeDeleted">pokaz usunietych</label>
-    </div>
-    <div class="col-auto ms-auto">
-        <a class="btn btn-success" href="/patients/new">+ Dodaj pacjenta</a>
-    </div>
+    <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
+        <div class="col-auto form-check ms-2 mt-2">
+            <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="includeDeleted" @bind:after="LoadAsync" />
+            <label class="form-check-label" for="includeDeleted">pokaz usunietych</label>
+        </div>
+        <div class="col-auto ms-auto">
+            <a class="btn btn-success" href="/patients/new">+ Dodaj pacjenta</a>
+        </div>
+    </AuthorizeView>
 </div>
 
 @if (errorMessage is not null)
@@ -87,11 +89,14 @@ else
                     </td>
                     <td class="text-end">
                         <a class="btn btn-sm btn-outline-primary" href="@($"/patients/{patient.Id}")">Szczegoly</a>
-                        <a class="btn btn-sm btn-outline-secondary" href="@($"/patients/{patient.Id}/edit")">Edytuj</a>
-                        @if (!patient.IsDeleted)
-                        {
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => SoftDeleteAsync(patient.Id)">Usun</button>
-                        }
+                        <a class="btn btn-sm btn-outline-info" href="@($"/patients/{patient.Id}/record")">Kartoteka</a>
+                        <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")" Context="editAuth">
+                            <a class="btn btn-sm btn-outline-secondary" href="@($"/patients/{patient.Id}/edit")">Edytuj</a>
+                            @if (!patient.IsDeleted)
+                            {
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => SoftDeleteAsync(patient.Id)">Usun</button>
+                            }
+                        </AuthorizeView>
                     </td>
                 </tr>
             }
