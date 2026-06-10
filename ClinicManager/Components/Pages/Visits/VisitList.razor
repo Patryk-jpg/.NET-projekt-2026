@@ -1,0 +1,125 @@
+@page "/visits"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Enums
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")]
+
+@inject IVisitService VisitService
+
+<PageTitle>Wizyty</PageTitle>
+
+<h1>Wizyty</h1>
+
+<p class="text-muted">
+    Lista wizyt posortowana malejaco po dacie. Mozesz odfiltrowac po statusie.
+</p>
+
+<div class="row g-2 mb-3">
+    <div class="col-sm-4">
+        <select class="form-select" @bind="statusFilter" @bind:after="LoadAsync">
+            <option value="">Wszystkie statusy</option>
+            @foreach (var status in Enum.GetValues<VisitStatus>())
+            {
+                <option value="@status">@VisitStatusLabels.GetLabel(status)</option>
+            }
+        </select>
+    </div>
+    <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
+        <div class="col-auto ms-auto">
+            <a class="btn btn-success" href="/visits/new">+ Dodaj wizyte</a>
+        </div>
+    </AuthorizeView>
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (visits.Count == 0)
+{
+    <div class="alert alert-info">Brak wizyt pasujacych do filtra.</div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Pacjent</th>
+                <th>Lekarz</th>
+                <th>Status</th>
+                <th class="text-end">Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var visit in visits)
+            {
+                <tr>
+                    <td>@visit.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        <a href="@($"/patients/{visit.PatientId}")">@visit.PatientFullName</a>
+                        <div class="text-muted small"><code>@visit.PatientPesel</code></div>
+                    </td>
+                    <td>
+                        @visit.DoctorFullName
+                        <div class="text-muted small">@visit.DoctorSpecialization</div>
+                    </td>
+                    <td>
+                        <span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span>
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private VisitStatus? statusFilter;
+    private List<VisitDto> visits = new();
+    private bool loading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            var result = await VisitService.SearchAsync(statusFilter);
+            visits = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie pobrac wizyt: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private static string StatusBadgeClass(VisitStatus status) => status switch
+    {
+        VisitStatus.Planned => "bg-primary",
+        VisitStatus.InProgress => "bg-warning text-dark",
+        VisitStatus.Completed => "bg-success",
+        VisitStatus.Cancelled => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}

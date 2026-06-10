@@ -1,0 +1,111 @@
+@page "/visits/new"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+@inject IPatientService PatientService
+@inject IVisitService VisitService
+@inject NavigationManager Navigation
+
+<PageTitle>Nowa wizyta</PageTitle>
+
+<h1>Nowa wizyta</h1>
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (!loading)
+{
+    <EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="visit-create">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <VisitFormFields Form="form"
+                         Patients="patients"
+                         Doctors="doctors"
+                         LockPatient="@(PatientId is not null)"
+                         SelectedPatient="selectedPatient" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" disabled="@saving">Zapisz wizyte</button>
+            <a class="btn btn-link" href="@CancelUrl">Anuluj</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery] public int? PatientId { get; set; }
+
+    private VisitFormDto form = new();
+    private List<PatientDto> patients = new();
+    private List<DoctorOptionDto> doctors = new();
+    private PatientDto? selectedPatient;
+    private bool loading = true;
+    private bool saving;
+    private string? errorMessage;
+
+    private string CancelUrl => PatientId is null
+        ? "/visits"
+        : $"/patients/{PatientId}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            doctors = (await VisitService.GetDoctorOptionsAsync()).ToList();
+
+            if (PatientId is { } pid)
+            {
+                selectedPatient = await PatientService.GetByIdAsync(pid);
+                if (selectedPatient is null)
+                {
+                    errorMessage = $"Pacjent o Id {pid} nie istnieje.";
+                }
+                else
+                {
+                    form.PatientId = selectedPatient.Id;
+                }
+            }
+            else
+            {
+                patients = (await PatientService.SearchAsync(null)).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            var created = await VisitService.CreateAsync(form);
+            Navigation.NavigateTo($"/visits/{created.Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

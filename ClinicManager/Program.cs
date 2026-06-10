@@ -55,11 +55,13 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // Domain services i mappery
 builder.Services.AddSingleton<PatientMapper>();
 builder.Services.AddSingleton<MedicalRecordMapper>();
+builder.Services.AddSingleton<VisitMapper>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IMedicalRecordService>(sp => new MedicalRecordService(
     sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
     sp.GetRequiredService<MedicalRecordMapper>(),
     sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
+builder.Services.AddScoped<IVisitService, VisitService>();
 
 var app = builder.Build();
 
