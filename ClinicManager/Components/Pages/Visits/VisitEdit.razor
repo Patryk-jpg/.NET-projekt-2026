@@ -1,0 +1,117 @@
+@page "/visits/{Id:int}/edit"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Enums
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+@inject IPatientService PatientService
+@inject IVisitService VisitService
+@inject NavigationManager Navigation
+
+<PageTitle>Edycja wizyty</PageTitle>
+
+<h1>Edycja wizyty</h1>
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (currentVisit is null)
+{
+    <div class="alert alert-warning">Nie znaleziono wizyty o Id @Id.</div>
+    <a class="btn btn-link" href="/visits">Wroc do listy</a>
+}
+else if (currentVisit.Status != VisitStatus.Planned)
+{
+    <div class="alert alert-warning">
+        Mozna edytowac tylko wizyty w statusie
+        <strong>@VisitStatusLabels.GetLabel(VisitStatus.Planned)</strong>.
+        Aktualny status: <strong>@currentVisit.StatusLabel</strong>.
+    </div>
+    <a class="btn btn-link" href="@($"/visits/{currentVisit.Id}")">Wroc do szczegolow</a>
+}
+else
+{
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="visit-edit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <VisitFormFields Form="form"
+                         Patients="patients"
+                         Doctors="doctors" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" disabled="@saving">Zapisz zmiany</button>
+            <a class="btn btn-link" href="@($"/visits/{Id}")">Anuluj</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private VisitDto? currentVisit;
+    private VisitFormDto form = new();
+    private List<PatientDto> patients = new();
+    private List<DoctorOptionDto> doctors = new();
+    private bool loading = true;
+    private bool saving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            currentVisit = await VisitService.GetByIdAsync(Id);
+            if (currentVisit is null || currentVisit.Status != VisitStatus.Planned)
+            {
+                return;
+            }
+
+            doctors = (await VisitService.GetDoctorOptionsAsync()).ToList();
+            patients = (await PatientService.SearchAsync(null)).ToList();
+
+            form = new VisitFormDto
+            {
+                PatientId = currentVisit.PatientId,
+                DoctorId = currentVisit.DoctorId,
+                ScheduledAt = currentVisit.ScheduledAt
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            await VisitService.UpdateAsync(Id, form);
+            Navigation.NavigateTo($"/visits/{Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

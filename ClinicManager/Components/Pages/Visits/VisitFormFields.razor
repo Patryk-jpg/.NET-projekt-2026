@@ -1,0 +1,51 @@
+@using ClinicManager.Core.DTOs
+
+<div class="mb-3">
+    <label class="form-label">Pacjent</label>
+    @if (LockPatient && SelectedPatient is not null)
+    {
+        <div class="form-control-plaintext">
+            <strong>@SelectedPatient.LastName @SelectedPatient.FirstName</strong>
+            <span class="text-muted">(<code>@SelectedPatient.Pesel</code>)</span>
+        </div>
+        <input type="hidden" value="@Form.PatientId" />
+    }
+    else
+    {
+        <InputSelect class="form-select" @bind-Value="Form.PatientId">
+            <option value="0">-- wybierz pacjenta --</option>
+            @foreach (var p in Patients)
+            {
+                <option value="@p.Id">@p.LastName @p.FirstName (PESEL @p.Pesel)</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => Form.PatientId)" class="text-danger" />
+    }
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Lekarz</label>
+    <InputSelect class="form-select" @bind-Value="Form.DoctorId">
+        <option value="0">-- wybierz lekarza --</option>
+        @foreach (var d in Doctors)
+        {
+            <option value="@d.Id">@d.FullName (@d.Specialization)</option>
+        }
+    </InputSelect>
+    <ValidationMessage For="@(() => Form.DoctorId)" class="text-danger" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Termin wizyty</label>
+    <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="Form.ScheduledAt" />
+    <ValidationMessage For="@(() => Form.ScheduledAt)" class="text-danger" />
+    <div class="form-text">Format: rrrr-mm-dd godz:min. Termin nie moze byc w przeszlosci.</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public VisitFormDto Form { get; set; } = default!;
+    [Parameter] public IReadOnlyList<PatientDto> Patients { get; set; } = Array.Empty<PatientDto>();
+    [Parameter, EditorRequired] public IReadOnlyList<DoctorOptionDto> Doctors { get; set; } = Array.Empty<DoctorOptionDto>();
+    [Parameter] public bool LockPatient { get; set; }
+    [Parameter] public PatientDto? SelectedPatient { get; set; }
+}

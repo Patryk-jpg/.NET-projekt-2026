@@ -3,10 +3,12 @@
 @using Microsoft.AspNetCore.Authorization
 @using ClinicManager.Core.Constants
 @using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Enums
 @using ClinicManager.Core.Interfaces
 @attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")]
 
 @inject IPatientService PatientService
+@inject IVisitService VisitService
 @inject NavigationManager Navigation
 
 <PageTitle>Pacjent</PageTitle>
@@ -50,7 +52,7 @@ else
         <dd class="col-sm-9">@patient.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
     </dl>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 mb-4">
         <a class="btn btn-info" href="@($"/patients/{Id}/record")">Kartoteka i dokumenty</a>
         <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
             <a class="btn btn-secondary" href="@($"/patients/{Id}/edit")">Edytuj</a>
@@ -61,17 +63,60 @@ else
         </AuthorizeView>
         <a class="btn btn-link ms-auto" href="/patients">Wroc do listy</a>
     </div>
+
+    <h2 class="h4 d-flex align-items-center">
+        <span>Wizyty</span>
+        <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
+            <a class="btn btn-sm btn-success ms-3" href="@($"/visits/new?patientId={Id}")">+ Dodaj wizyte</a>
+        </AuthorizeView>
+    </h2>
+
+    @if (visits.Count == 0)
+    {
+        <div class="alert alert-light border">Pacjent nie ma jeszcze wizyt.</div>
+    }
+    else
+    {
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Termin</th>
+                    <th>Lekarz</th>
+                    <th>Status</th>
+                    <th class="text-end">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var visit in visits)
+                {
+                    <tr>
+                        <td>@visit.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@visit.DoctorFullName <span class="text-muted small">(@visit.DoctorSpecialization)</span></td>
+                        <td><span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span></td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
 @code {
     [Parameter] public int Id { get; set; }
 
     private PatientDto? patient;
+    private List<VisitDto> visits = new();
     private bool loading = true;
 
     protected override async Task OnInitializedAsync()
     {
         patient = await PatientService.GetByIdAsync(Id);
+        if (patient is not null)
+        {
+            visits = (await VisitService.GetForPatientAsync(Id)).ToList();
+        }
         loading = false;
     }
 
@@ -85,4 +130,13 @@ else
         await PatientService.SoftDeleteAsync(patient.Id);
         Navigation.NavigateTo("/patients");
     }
+
+    private static string StatusBadgeClass(VisitStatus status) => status switch
+    {
+        VisitStatus.Planned => "bg-primary",
+        VisitStatus.InProgress => "bg-warning text-dark",
+        VisitStatus.Completed => "bg-success",
+        VisitStatus.Cancelled => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
 }
