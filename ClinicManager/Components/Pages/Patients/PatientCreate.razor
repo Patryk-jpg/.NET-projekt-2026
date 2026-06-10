@@ -1,0 +1,62 @@
+@page "/patients/new"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+@inject IPatientService PatientService
+@inject NavigationManager Navigation
+
+<PageTitle>Nowy pacjent</PageTitle>
+
+<h1>Nowy pacjent</h1>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="patient-create">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+
+    <PatientFormFields Form="form" />
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary" disabled="@saving">
+            @(saving ? "Zapisywanie..." : "Zapisz")
+        </button>
+        <a class="btn btn-link" href="/patients">Anuluj</a>
+    </div>
+</EditForm>
+
+@code {
+    private PatientFormDto form = new();
+    private bool saving;
+    private string? errorMessage;
+
+    private async Task SubmitAsync()
+    {
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            var created = await PatientService.CreateAsync(form);
+            Navigation.NavigateTo($"/patients/{created.Id}");
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie zapisac pacjenta: {ex.Message}";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

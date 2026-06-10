@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ClinicManager.Components;
 using ClinicManager.Components.Account;
+using ClinicManager.Core.Interfaces;
 using ClinicManager.Data;
+using ClinicManager.Infrastructure.Mappers;
+using ClinicManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +27,15 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
                        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// Fabryka rejestruje DbContextOptions jako singleton i pozwala serwisom domenowym
+// (np. PatientService) tworzyc krotkozyjacy DbContext per operacja - zalecany pattern
+// dla Blazor Server.
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+// Identity i `IdentitySeeder` oczekuja scoped ApplicationDbContext - dostarczamy go
+// z tej samej fabryki, zeby zachowac wspolne opcje i nie podwajac konfiguracji.
+builder.Services.AddScoped<ApplicationDbContext>(sp =>
+    sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -41,6 +51,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Domain services i mappery
+builder.Services.AddSingleton<PatientMapper>();
+builder.Services.AddScoped<IPatientService, PatientService>();
 
 var app = builder.Build();
 
