@@ -23,6 +23,8 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/rejestratorka">Panel rejestracji</a>
                 </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")">
                 <li class="nav-item">
                     <a class="nav-link" href="/patients">Pacjenci</a>
                 </li>

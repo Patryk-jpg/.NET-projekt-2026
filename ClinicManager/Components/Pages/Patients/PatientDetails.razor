@@ -50,16 +50,17 @@ else
         <dd class="col-sm-9">@patient.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
     </dl>
 
-    <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
-        <div class="d-flex gap-2">
+    <div class="d-flex gap-2">
+        <a class="btn btn-info" href="@($"/patients/{Id}/record")">Kartoteka i dokumenty</a>
+        <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
             <a class="btn btn-secondary" href="@($"/patients/{Id}/edit")">Edytuj</a>
             @if (!patient.IsDeleted)
             {
                 <button class="btn btn-outline-danger" @onclick="SoftDeleteAsync">Usun (soft delete)</button>
             }
-            <a class="btn btn-link ms-auto" href="/patients">Wroc do listy</a>
-        </div>
-    </AuthorizeView>
+        </AuthorizeView>
+        <a class="btn btn-link ms-auto" href="/patients">Wroc do listy</a>
+    </div>
 }
 
 @code {
