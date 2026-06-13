@@ -1,21 +1,121 @@
 @page "/lekarz"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Enums
+@using ClinicManager.Core.Interfaces
 @attribute [Authorize(Roles = $"{Roles.Lekarz},{Roles.Admin}")]
+
+@inject IVisitService VisitService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Panel lekarza</PageTitle>
 
 <h1>Panel lekarza</h1>
 
-<p>
-    Sekcja dostepna dla uzytkownikow w roli <strong>Lekarz</strong>
-    (oraz administratorow systemu).
-</p>
+<div class="row g-2 mb-3 align-items-end">
+    <div class="col-auto">
+        <label class="form-label mb-1">Data</label>
+        <input type="date" class="form-control" @bind="selectedDate" @bind:after="LoadAsync" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" @onclick="SetToday">Dzisiaj</button>
+    </div>
+</div>
 
-<ul>
-    <li><a href="/patients">Pacjenci i ich kartoteki</a> - tryb tylko do odczytu (US-05, US-06).</li>
-    <li><a href="/visits">Wizyty</a> - lista wszystkich wizyt z filtrem statusu (US-07).</li>
-    <li>Lista wizyt przypisanych do lekarza (US-08).</li>
-    <li>Notatki kliniczne i procedury wizyty (US-09, US-10).</li>
-    <li>Generowanie PDF karty wizyty (US-11).</li>
-</ul>
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (visits.Count == 0)
+{
+    <div class="alert alert-info">Brak wizyt na wybrany dzien.</div>
+}
+else
+{
+    <p class="text-muted">Wizyty: @visits.Count</p>
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Godzina</th>
+                <th>Pacjent</th>
+                <th>PESEL</th>
+                <th>Status</th>
+                <th class="text-end">Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var visit in visits)
+            {
+                <tr>
+                    <td>@visit.ScheduledAt.ToString("HH:mm")</td>
+                    <td><a href="@($"/patients/{visit.PatientId}")">@visit.PatientFullName</a></td>
+                    <td><code>@visit.PatientPesel</code></td>
+                    <td>
+                        <span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span>
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private DateOnly selectedDate = DateOnly.FromDateTime(DateTime.Today);
+    private List<VisitDto> visits = new();
+    private bool loading;
+    private string? errorMessage;
+    private string? userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        userId = state.User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (userId is null) return;
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            var result = await VisitService.GetForDoctorAsync(userId, selectedDate);
+            visits = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie pobrac wizyt: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SetToday()
+    {
+        selectedDate = DateOnly.FromDateTime(DateTime.Today);
+        await LoadAsync();
+    }
+
+    private static string StatusBadgeClass(VisitStatus status) => status switch
+    {
+        VisitStatus.Planned => "bg-primary",
+        VisitStatus.InProgress => "bg-warning text-dark",
+        VisitStatus.Completed => "bg-success",
+        VisitStatus.Cancelled => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}
