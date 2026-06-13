@@ -12,6 +12,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Doctor> Doctors => Set<Doctor>();
     public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
     public DbSet<Visit> Visits => Set<Visit>();
+    public DbSet<Procedure> Procedures => Set<Procedure>();
     public DbSet<ProcedurePerformed> ProceduresPerformed => Set<ProcedurePerformed>();
     public DbSet<Medication> Medications => Set<Medication>();
     public DbSet<PrescribedMedication> PrescribedMedications => Set<PrescribedMedication>();
@@ -66,6 +67,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany(doctor => doctor.Visits)
                 .HasForeignKey(visit => visit.DoctorId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Procedure>(entity =>
+        {
+            entity.Property(p => p.Name).HasMaxLength(200);
+            entity.Property(p => p.Description).HasMaxLength(500);
+            entity.Property(p => p.DefaultCost).HasPrecision(18, 2);
         });
 
         builder.Entity<ProcedurePerformed>(entity =>

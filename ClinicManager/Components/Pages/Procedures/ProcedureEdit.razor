@@ -1,0 +1,94 @@
+@page "/procedures/{Id:int}/edit"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Admin}")]
+
+@inject IProcedureService ProcedureService
+@inject NavigationManager Navigation
+
+<PageTitle>Edycja procedury</PageTitle>
+
+<h1>Edycja procedury</h1>
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (form is null)
+{
+    <div class="alert alert-warning">Nie znaleziono procedury o Id @Id.</div>
+    <a href="/procedures" class="btn btn-link">Wroc do listy</a>
+}
+else
+{
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="procedure-edit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <ProcedureFormFields Form="form" />
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary" disabled="@saving">
+                @(saving ? "Zapisywanie..." : "Zapisz zmiany")
+            </button>
+            <a class="btn btn-link" href="/procedures">Anuluj</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private ProcedureFormDto? form;
+    private bool loading = true;
+    private bool saving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var procedure = await ProcedureService.GetByIdAsync(Id);
+        if (procedure is not null)
+        {
+            form = new ProcedureFormDto
+            {
+                Name = procedure.Name,
+                Description = procedure.Description,
+                DefaultCost = procedure.DefaultCost
+            };
+        }
+        loading = false;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (form is null) return;
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            var updated = await ProcedureService.UpdateAsync(Id, form);
+            if (updated is null)
+            {
+                errorMessage = "Nie znaleziono procedury. Mogla zostac usunieta w innej sesji.";
+                return;
+            }
+            Navigation.NavigateTo("/procedures");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie zapisac zmian: {ex.Message}";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

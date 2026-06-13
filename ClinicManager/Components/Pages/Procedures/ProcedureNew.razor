@@ -1,0 +1,58 @@
+@page "/procedures/new"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Admin}")]
+
+@inject IProcedureService ProcedureService
+@inject NavigationManager Navigation
+
+<PageTitle>Nowa procedura</PageTitle>
+
+<h1>Nowa procedura</h1>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="procedure-new">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+
+    <ProcedureFormFields Form="form" />
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary" disabled="@saving">
+            @(saving ? "Zapisywanie..." : "Dodaj procedure")
+        </button>
+        <a class="btn btn-link" href="/procedures">Anuluj</a>
+    </div>
+</EditForm>
+
+@code {
+    private readonly ProcedureFormDto form = new();
+    private bool saving;
+    private string? errorMessage;
+
+    private async Task SubmitAsync()
+    {
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            await ProcedureService.CreateAsync(form);
+            Navigation.NavigateTo("/procedures");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie dodac procedury: {ex.Message}";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

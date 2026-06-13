@@ -56,7 +56,9 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddSingleton<PatientMapper>();
 builder.Services.AddSingleton<MedicalRecordMapper>();
 builder.Services.AddSingleton<VisitMapper>();
+builder.Services.AddSingleton<ProcedureMapper>();
 builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IProcedureService, ProcedureService>();
 builder.Services.AddScoped<IMedicalRecordService>(sp => new MedicalRecordService(
     sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
     sp.GetRequiredService<MedicalRecordMapper>(),

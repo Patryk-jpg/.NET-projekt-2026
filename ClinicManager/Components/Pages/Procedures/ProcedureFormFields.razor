@@ -1,0 +1,23 @@
+@using ClinicManager.Core.DTOs
+
+<div class="mb-3">
+    <label class="form-label">Nazwa <span class="text-danger">*</span></label>
+    <InputText class="form-control" @bind-Value="Form.Name" />
+    <ValidationMessage For="() => Form.Name" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Opis</label>
+    <InputTextArea class="form-control" rows="3" @bind-Value="Form.Description" />
+    <ValidationMessage For="() => Form.Description" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Domyslny koszt (PLN) <span class="text-danger">*</span></label>
+    <InputNumber class="form-control" @bind-Value="Form.DefaultCost" />
+    <ValidationMessage For="() => Form.DefaultCost" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ProcedureFormDto Form { get; set; } = null!;
+}

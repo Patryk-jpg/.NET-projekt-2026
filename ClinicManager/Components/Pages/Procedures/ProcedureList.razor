@@ -1,0 +1,123 @@
+@page "/procedures"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin}")]
+
+@inject IProcedureService ProcedureService
+
+<PageTitle>Katalog procedur</PageTitle>
+
+<h1>Katalog procedur</h1>
+
+<div class="row g-2 mb-3">
+    <div class="col-sm-6 col-md-5">
+        <input type="text"
+               class="form-control"
+               placeholder="Szukaj po nazwie lub opisie"
+               @bind="query"
+               @bind:event="oninput"
+               @onkeyup="OnKeyUp" />
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary" @onclick="LoadAsync">Szukaj</button>
+    </div>
+    <AuthorizeView Roles="@Roles.Admin">
+        <div class="col-auto ms-auto">
+            <a class="btn btn-success" href="/procedures/new">+ Dodaj procedure</a>
+        </div>
+    </AuthorizeView>
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (procedures.Count == 0)
+{
+    <div class="alert alert-info">Brak procedur pasujacych do filtra.</div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Opis</th>
+                <th class="text-end">Domyslny koszt</th>
+                <AuthorizeView Roles="@Roles.Admin">
+                    <th class="text-end">Akcje</th>
+                </AuthorizeView>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var procedure in procedures)
+            {
+                <tr>
+                    <td>@procedure.Name</td>
+                    <td class="text-muted">@(procedure.Description ?? "—")</td>
+                    <td class="text-end">@procedure.DefaultCost.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pl-PL"))</td>
+                    <AuthorizeView Roles="@Roles.Admin" Context="adminAuth">
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" href="@($"/procedures/{procedure.Id}/edit")">Edytuj</a>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(procedure.Id)">Usun</button>
+                        </td>
+                    </AuthorizeView>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string? query;
+    private List<ProcedureDto> procedures = new();
+    private bool loading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            var result = await ProcedureService.SearchAsync(query);
+            procedures = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie pobrac procedur: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OnKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter") await LoadAsync();
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        try
+        {
+            await ProcedureService.DeleteAsync(id);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie usunac procedury: {ex.Message}";
+        }
+    }
+}
