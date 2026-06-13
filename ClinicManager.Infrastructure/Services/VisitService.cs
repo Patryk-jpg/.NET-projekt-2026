@@ -1,13 +1,13 @@
-using ClinicManager.Core.Constants;
+﻿using ClinicManager.Core.Constants;
 using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Enums;
 using ClinicManager.Core.Interfaces;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClinicManager.Services;
+namespace ClinicManager.Infrastructure.Services;
 
 /// <summary>
 /// Implementacja logiki wizyt. Tak jak <c>PatientService</c> i <c>MedicalRecordService</c>

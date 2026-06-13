@@ -1,8 +1,9 @@
-using ClinicManager.Core.Constants;
+﻿using ClinicManager.Core.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace ClinicManager.Data;
+namespace ClinicManager.Infrastructure.Data;
 
 /// <summary>
 /// Tworzy podstawowe role aplikacji oraz konta testowe potrzebne do prezentacji systemu

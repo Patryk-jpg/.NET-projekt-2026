@@ -11,20 +11,13 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Riok.Mapperly" Version="5.0.0-next.8" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Data\" />
-      <Folder Include="Mappers\" />
-      <Folder Include="Migrations\" />
-      <Folder Include="Repositories\" />
-      <Folder Include="Services\" />
     </ItemGroup>
 
 </Project>

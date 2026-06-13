@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ClinicManager.Components;
 using ClinicManager.Components.Account;
 using ClinicManager.Core.Interfaces;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
-using ClinicManager.Services;
+using ClinicManager.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

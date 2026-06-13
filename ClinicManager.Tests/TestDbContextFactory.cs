@@ -1,4 +1,4 @@
-using ClinicManager.Data;
+﻿using ClinicManager.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicManager.Tests;

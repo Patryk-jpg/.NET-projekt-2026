@@ -1,8 +1,8 @@
 ﻿using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
-using ClinicManager.Services;
+using ClinicManager.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
