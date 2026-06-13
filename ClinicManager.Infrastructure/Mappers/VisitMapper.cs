@@ -4,6 +4,11 @@ using Riok.Mapperly.Abstractions;
 
 namespace ClinicManager.Infrastructure.Mappers;
 
+/// <summary>
+/// Mapperly mapper miedzy <see cref="Visit"/> a DTO. Prywatne metody
+/// <c>ToPatientSummary</c> i <c>ToDoctorSummary</c> sa automatycznie
+/// uzywane przez Mapperly przy mapowaniu zagniezdonych obiektow w <c>ToDto</c>.
+/// </summary>
 [Mapper]
 public partial class VisitMapper
 {
