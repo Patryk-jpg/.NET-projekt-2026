@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 
 namespace ClinicManager.Components.Account;
 

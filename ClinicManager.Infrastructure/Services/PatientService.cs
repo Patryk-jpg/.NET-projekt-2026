@@ -1,11 +1,11 @@
-using ClinicManager.Core.DTOs;
+﻿using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Interfaces;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClinicManager.Services;
+namespace ClinicManager.Infrastructure.Services;
 
 /// <summary>
 /// Implementacja CRUD pacjentow oparta na <see cref="ApplicationDbContext"/>.

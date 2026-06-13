@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ClinicManager.Components.Account.Pages;
 using ClinicManager.Components.Account.Pages.Manage;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 
 namespace Microsoft.AspNetCore.Routing;
 
