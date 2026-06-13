@@ -56,10 +56,10 @@ else
             {
                 <tr>
                     <td>@visit.ScheduledAt.ToString("HH:mm")</td>
-                    <td><a href="@($"/patients/{visit.PatientId}")">@visit.PatientFullName</a></td>
-                    <td><code>@visit.PatientPesel</code></td>
+                    <td><a href="@($"/patients/{visit.Patient.Id}")">@visit.Patient.FirstName @visit.Patient.LastName</a></td>
+                    <td><code>@visit.Patient.Pesel</code></td>
                     <td>
-                        <span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span>
+                        <VisitStatusBadge Status="visit.Status" />
                     </td>
                     <td class="text-end">
                         <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
@@ -110,12 +110,4 @@ else
         await LoadAsync();
     }
 
-    private static string StatusBadgeClass(VisitStatus status) => status switch
-    {
-        VisitStatus.Planned => "bg-primary",
-        VisitStatus.InProgress => "bg-warning text-dark",
-        VisitStatus.Completed => "bg-success",
-        VisitStatus.Cancelled => "bg-secondary",
-        _ => "bg-light text-dark"
-    };
 }

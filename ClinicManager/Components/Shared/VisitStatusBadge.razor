@@ -1,0 +1,17 @@
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.Enums
+
+<span class="badge @BadgeClass">@VisitStatusLabels.GetLabel(Status)</span>
+
+@code {
+    [Parameter, EditorRequired] public VisitStatus Status { get; set; }
+
+    private string BadgeClass => Status switch
+    {
+        VisitStatus.Planned    => "bg-primary",
+        VisitStatus.InProgress => "bg-warning text-dark",
+        VisitStatus.Completed  => "bg-success",
+        VisitStatus.Cancelled  => "bg-secondary",
+        _                      => "bg-light text-dark"
+    };
+}
