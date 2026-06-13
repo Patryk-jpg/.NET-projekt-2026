@@ -91,8 +91,8 @@ else
                 {
                     <tr>
                         <td>@visit.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@visit.DoctorFullName <span class="text-muted small">(@visit.DoctorSpecialization)</span></td>
-                        <td><span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span></td>
+                        <td>@visit.Doctor.FirstName @visit.Doctor.LastName <span class="text-muted small">(@visit.Doctor.Specialization)</span></td>
+                        <td><VisitStatusBadge Status="visit.Status" /></td>
                         <td class="text-end">
                             <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
                         </td>
@@ -131,12 +131,4 @@ else
         Navigation.NavigateTo("/patients");
     }
 
-    private static string StatusBadgeClass(VisitStatus status) => status switch
-    {
-        VisitStatus.Planned => "bg-primary",
-        VisitStatus.InProgress => "bg-warning text-dark",
-        VisitStatus.Completed => "bg-success",
-        VisitStatus.Cancelled => "bg-secondary",
-        _ => "bg-light text-dark"
-    };
 }

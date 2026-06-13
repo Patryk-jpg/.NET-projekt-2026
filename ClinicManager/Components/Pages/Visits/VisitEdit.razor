@@ -29,7 +29,7 @@ else if (currentVisit.Status != VisitStatus.Planned)
     <div class="alert alert-warning">
         Mozna edytowac tylko wizyty w statusie
         <strong>@VisitStatusLabels.GetLabel(VisitStatus.Planned)</strong>.
-        Aktualny status: <strong>@currentVisit.StatusLabel</strong>.
+        Aktualny status: <strong>@VisitStatusLabels.GetLabel(currentVisit.Status)</strong>.
     </div>
     <a class="btn btn-link" href="@($"/visits/{currentVisit.Id}")">Wroc do szczegolow</a>
 }
@@ -81,8 +81,8 @@ else
 
             form = new VisitFormDto
             {
-                PatientId = currentVisit.PatientId,
-                DoctorId = currentVisit.DoctorId,
+                PatientId = currentVisit.Patient.Id,
+                DoctorId = currentVisit.Doctor.Id,
                 ScheduledAt = currentVisit.ScheduledAt
             };
         }

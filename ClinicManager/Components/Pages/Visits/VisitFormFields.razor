@@ -29,7 +29,7 @@
         <option value="0">-- wybierz lekarza --</option>
         @foreach (var d in Doctors)
         {
-            <option value="@d.Id">@d.FullName (@d.Specialization)</option>
+            <option value="@d.Id">@d.FirstName @d.LastName (@d.Specialization)</option>
         }
     </InputSelect>
     <ValidationMessage For="@(() => Form.DoctorId)" class="text-danger" />

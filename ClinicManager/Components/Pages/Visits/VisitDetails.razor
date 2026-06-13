@@ -29,19 +29,19 @@ else
     <dl class="row">
         <dt class="col-sm-3">Pacjent</dt>
         <dd class="col-sm-9">
-            <a href="@($"/patients/{visit.PatientId}")">@visit.PatientFullName</a>
-            (PESEL <code>@visit.PatientPesel</code>)
+            <a href="@($"/patients/{visit.Patient.Id}")">@visit.Patient.FirstName @visit.Patient.LastName</a>
+            (PESEL <code>@visit.Patient.Pesel</code>)
         </dd>
 
         <dt class="col-sm-3">Lekarz</dt>
-        <dd class="col-sm-9">@visit.DoctorFullName <span class="text-muted">@visit.DoctorSpecialization</span></dd>
+        <dd class="col-sm-9">@visit.Doctor.FirstName @visit.Doctor.LastName <span class="text-muted">@visit.Doctor.Specialization</span></dd>
 
         <dt class="col-sm-3">Termin</dt>
         <dd class="col-sm-9">@visit.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</dd>
 
         <dt class="col-sm-3">Status</dt>
         <dd class="col-sm-9">
-            <span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span>
+            <VisitStatusBadge Status="visit.Status" />
         </dd>
 
         <dt class="col-sm-3">Utworzono</dt>
@@ -135,7 +135,7 @@ else
         try
         {
             visit = await VisitService.ChangeStatusAsync(visit.Id, newStatus);
-            successMessage = $"Status zmieniony na '{visit.StatusLabel}'.";
+            successMessage = $"Status zmieniony na '{VisitStatusLabels.GetLabel(visit.Status)}'.";
         }
         catch (Exception ex)
         {
@@ -146,15 +146,6 @@ else
             busy = false;
         }
     }
-
-    private static string StatusBadgeClass(VisitStatus status) => status switch
-    {
-        VisitStatus.Planned => "bg-primary",
-        VisitStatus.InProgress => "bg-warning text-dark",
-        VisitStatus.Completed => "bg-success",
-        VisitStatus.Cancelled => "bg-secondary",
-        _ => "bg-light text-dark"
-    };
 
     private static string StatusButtonClass(VisitStatus status) => status switch
     {
