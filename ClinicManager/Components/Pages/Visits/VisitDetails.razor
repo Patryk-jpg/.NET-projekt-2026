@@ -8,6 +8,7 @@
 @attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")]
 
 @inject IVisitService VisitService
+@inject IProcedureService ProcedureService
 @inject NavigationManager Navigation
 
 <PageTitle>Wizyta</PageTitle>
@@ -57,6 +58,68 @@ else
         <div class="alert alert-success">@successMessage</div>
     }
 
+    <section class="mt-4">
+        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
+            <h2 class="h4 mb-0">Procedury</h2>
+            <strong>Suma kosztow: @FormatCost(proceduresTotal)</strong>
+        </div>
+
+        @if (procedures.Count == 0)
+        {
+            <p class="text-muted">Brak procedur dodanych do tej wizyty.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Opis</th>
+                        <th class="text-end">Koszt</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var procedure in procedures)
+                    {
+                        <tr>
+                            <td>@procedure.Description</td>
+                            <td class="text-end">@FormatCost(procedure.ServiceCost)</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="procedureAuth">
+            <EditForm Model="procedureForm" OnValidSubmit="AddProcedureAsync" FormName="add-procedure">
+                <DataAnnotationsValidator />
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-7">
+                        <label class="form-label" for="procedure-description">Opis procedury</label>
+                        <InputTextArea id="procedure-description"
+                                       class="form-control"
+                                       @bind-Value="procedureForm.Description"
+                                       rows="2" />
+                        <ValidationMessage For="@(() => procedureForm.Description)" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="procedure-cost">Koszt</label>
+                        <InputNumber id="procedure-cost"
+                                     class="form-control"
+                                     @bind-Value="procedureForm.ServiceCost" />
+                        <ValidationMessage For="@(() => procedureForm.ServiceCost)" />
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" class="btn btn-primary" disabled="@addingProcedure">
+                            Dodaj
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </AuthorizeView>
+    </section>
+
     <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
         <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
             @{
@@ -95,8 +158,12 @@ else
     [Parameter] public int Id { get; set; }
 
     private VisitDto? visit;
+    private List<ProcedurePerformedDto> procedures = [];
+    private ProcedurePerformedFormDto procedureForm = new();
+    private decimal proceduresTotal;
     private bool loading = true;
     private bool busy;
+    private bool addingProcedure;
     private string? errorMessage;
     private string? successMessage;
 
@@ -111,6 +178,10 @@ else
         try
         {
             visit = await VisitService.GetByIdAsync(Id);
+            if (visit is not null)
+            {
+                await LoadProceduresAsync(visit.Id);
+            }
         }
         catch (Exception ex)
         {
@@ -119,6 +190,39 @@ else
         finally
         {
             loading = false;
+        }
+    }
+
+    private async Task LoadProceduresAsync(int visitId)
+    {
+        procedures = (await ProcedureService.GetForVisitAsync(visitId)).ToList();
+        proceduresTotal = await ProcedureService.GetVisitTotalCostAsync(visitId);
+    }
+
+    private async Task AddProcedureAsync()
+    {
+        if (visit is null)
+        {
+            return;
+        }
+
+        addingProcedure = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            await ProcedureService.AddToVisitAsync(visit.Id, procedureForm);
+            procedureForm = new ProcedurePerformedFormDto();
+            await LoadProceduresAsync(visit.Id);
+            successMessage = "Procedura zostala dodana.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            addingProcedure = false;
         }
     }
 
@@ -154,4 +258,6 @@ else
         VisitStatus.Cancelled => "btn-outline-danger",
         _ => "btn-outline-primary"
     };
+
+    private static string FormatCost(decimal value) => $"{value:0.00} zl";
 }

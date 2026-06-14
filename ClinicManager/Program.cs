@@ -56,12 +56,14 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddSingleton<PatientMapper>();
 builder.Services.AddSingleton<MedicalRecordMapper>();
 builder.Services.AddSingleton<VisitMapper>();
+builder.Services.AddSingleton<ProcedureMapper>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IMedicalRecordService>(sp => new MedicalRecordService(
     sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
     sp.GetRequiredService<MedicalRecordMapper>(),
     sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 builder.Services.AddScoped<IVisitService, VisitService>();
+builder.Services.AddScoped<IProcedureService, ProcedureService>();
 
 var app = builder.Build();
 
