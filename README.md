@@ -71,6 +71,7 @@ Pipeline uruchamia się automatycznie przy każdym **push** i **pull request** n
 3. `dotnet restore` - pobiera paczki NuGet
 4. `dotnet build` - kompiluje solution w trybie Release
 5. `dotnet test` - uruchamia testy jednostkowe (xUnit)
+6. `docker build` - sprawdza budowe obrazu z `ClinicManager/Dockerfile`
 
 Jeśli którykolwiek krok się nie powiedzie, pipeline jest oznaczony jako failed i blokuje merge PR-a.
 
@@ -84,6 +85,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: build-and-test
 ```
 
 Pipeline działa na `ubuntu-latest` — środowisko czyste przy każdym uruchomieniu.
