@@ -181,6 +181,47 @@ public class PatientServiceTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_DomyslnieUkrywaSoftDeletedPacjenta()
+    {
+        // Standardowy odczyt szczegolow tez powinien respektowac soft delete,
+        // zeby bezposredni URL nie omijal ukrywania usunietych pacjentow.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var result = await service.GetByIdAsync(1);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ZwracaSoftDeletedGdyIncludeDeletedTrue()
+    {
+        // Jawny tryb archiwalny pozwala serwisowi odzyskac rekord bez fizycznego usuwania go z bazy.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var result = await service.GetByIdAsync(1, includeDeleted: true);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsDeleted);
+    }
+
+    [Fact]
+    public async Task GetByPeselAsync_DomyslnieUkrywaSoftDeletedPacjenta()
+    {
+        // Wyszukiwanie po PESEL nie powinno ujawniac usunietego pacjenta bez jawnego includeDeleted.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var result = await service.GetByPeselAsync("65040400004");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task CreateAsync_ZapisujePacjentaIZwracaDto()
     {
         // CRUD: nowy pacjent trafia do bazy z domyslnym IsDeleted = false oraz CreatedAt
@@ -251,6 +292,30 @@ public class PatientServiceTests
         var only = Assert.Single(fullList);
         Assert.True(only.IsDeleted);
         Assert.Equal("Kowalski", only.LastName);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_BlokujeEdycjeSoftDeletedPacjenta()
+    {
+        // Po soft delete nie edytujemy juz danych pacjenta standardowym CRUD-em,
+        // zeby nie mieszac archiwum z aktywna kartoteka.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.UpdateAsync(1, new PatientFormDto
+            {
+                FirstName = "Nowe",
+                LastName = "Dane",
+                Pesel = "65040400004",
+                InsuranceNumber = "NFZ-999",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Phone = "500100200",
+                Email = "nowe@example.com"
+            }));
+
+        Assert.Contains("usuniety", ex.Message);
     }
 
     [Fact]
