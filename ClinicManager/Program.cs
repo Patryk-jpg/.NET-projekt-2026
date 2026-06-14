@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ClinicManager.Components;
 using ClinicManager.Components.Account;
 using ClinicManager.Core.Constants;
+using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Interfaces;
 using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
@@ -71,6 +72,8 @@ builder.Services.AddScoped<IProcedureService, ProcedureService>();
 builder.Services.AddScoped<IMedicationService, MedicationService>();
 builder.Services.AddScoped<IVisitMedicalService, VisitMedicalService>();
 builder.Services.AddScoped<IVisitPdfService, VisitPdfService>();
+builder.Services.AddScoped<ICostReportService, CostReportService>();
+builder.Services.AddScoped<ICostReportPdfService, CostReportPdfService>();
 
 var app = builder.Build();
 
@@ -111,6 +114,31 @@ app.MapGet("/visits/{id:int}/pdf", async (
         }
     })
     .RequireAuthorization(policy => policy.RequireRole(Roles.Lekarz, Roles.Admin));
+app.MapGet("/reports/costs/pdf", async (
+        int? patientId,
+        int? doctorId,
+        int? year,
+        int? month,
+        ICostReportPdfService costReportPdfService,
+        CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            var pdf = await costReportPdfService.GenerateAsync(new CostReportFilterDto
+            {
+                PatientId = patientId,
+                DoctorId = doctorId,
+                Year = year,
+                Month = month
+            }, cancellationToken);
+            return Results.File(pdf, "application/pdf", "raport-kosztow.pdf");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+    })
+    .RequireAuthorization(policy => policy.RequireRole(Roles.Admin));
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

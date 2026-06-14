@@ -1,0 +1,178 @@
+@page "/reports/costs"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = Roles.Admin)]
+
+@inject ICostReportService CostReportService
+@inject IPatientService PatientService
+@inject IVisitService VisitService
+
+<PageTitle>Raport kosztow</PageTitle>
+
+<h1>Raport kosztow swiadczen</h1>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="filter" OnValidSubmit="LoadReportAsync" FormName="cost-report-filter">
+    <DataAnnotationsValidator />
+    <div class="row g-3 align-items-end mb-3">
+        <div class="col-md-3">
+            <label class="form-label" for="patient-filter">Pacjent</label>
+            <InputSelect id="patient-filter" class="form-select" @bind-Value="filter.PatientId">
+                <option value="">Wszyscy pacjenci</option>
+                @foreach (var patient in patients)
+                {
+                    <option value="@patient.Id">@patient.LastName @patient.FirstName (@patient.Pesel)</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="doctor-filter">Lekarz</label>
+            <InputSelect id="doctor-filter" class="form-select" @bind-Value="filter.DoctorId">
+                <option value="">Wszyscy lekarze</option>
+                @foreach (var doctor in doctors)
+                {
+                    <option value="@doctor.Id">@doctor.LastName @doctor.FirstName (@doctor.Specialization)</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="year-filter">Rok</label>
+            <InputNumber id="year-filter" class="form-control" @bind-Value="filter.Year" />
+            <ValidationMessage For="@(() => filter.Year)" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="month-filter">Miesiac</label>
+            <InputNumber id="month-filter" class="form-control" @bind-Value="filter.Month" />
+            <ValidationMessage For="@(() => filter.Month)" />
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary" disabled="@loading">
+                Generuj
+            </button>
+        </div>
+    </div>
+</EditForm>
+
+@if (report is not null)
+{
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <div class="me-auto">
+            <strong>Procedury:</strong> @FormatCost(report.TotalProcedureCost)
+            <span class="mx-2">|</span>
+            <strong>Leki:</strong> @FormatCost(report.TotalMedicationCost)
+            <span class="mx-2">|</span>
+            <strong>Razem:</strong> @FormatCost(report.TotalCost)
+        </div>
+        <a class="btn btn-outline-primary" href="@PdfUrl" target="_blank">Eksport PDF</a>
+    </div>
+
+    @if (report.Rows.Count == 0)
+    {
+        <div class="alert alert-info">Brak wizyt dla wybranych filtrow.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Pacjent</th>
+                    <th>Lekarz</th>
+                    <th class="text-end">Procedury</th>
+                    <th class="text-end">Leki</th>
+                    <th class="text-end">Razem</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in report.Rows)
+                {
+                    <tr>
+                        <td>@row.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @row.PatientName
+                            <span class="text-muted">(@row.PatientPesel)</span>
+                        </td>
+                        <td>
+                            @row.DoctorName
+                            <span class="text-muted">@row.DoctorSpecialization</span>
+                        </td>
+                        <td class="text-end">@FormatCost(row.ProcedureCost)</td>
+                        <td class="text-end">@FormatCost(row.MedicationCost)</td>
+                        <td class="text-end">@FormatCost(row.TotalCost)</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private CostReportFilterDto filter = new()
+    {
+        Year = DateTime.Today.Year,
+        Month = DateTime.Today.Month
+    };
+
+    private CostReportDto? report;
+    private List<PatientDto> patients = [];
+    private List<DoctorOptionDto> doctors = [];
+    private bool loading;
+    private string? errorMessage;
+
+    private string PdfUrl
+    {
+        get
+        {
+            var query = new List<string>();
+            AddQuery(query, "patientId", filter.PatientId);
+            AddQuery(query, "doctorId", filter.DoctorId);
+            AddQuery(query, "year", filter.Year);
+            AddQuery(query, "month", filter.Month);
+            return query.Count == 0 ? "/reports/costs/pdf" : $"/reports/costs/pdf?{string.Join("&", query)}";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        patients = (await PatientService.SearchAsync(null)).ToList();
+        doctors = (await VisitService.GetDoctorOptionsAsync()).ToList();
+        await LoadReportAsync();
+    }
+
+    private async Task LoadReportAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            report = await CostReportService.GenerateAsync(filter);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private static void AddQuery(List<string> query, string name, int? value)
+    {
+        if (value is not null)
+        {
+            query.Add($"{name}={value}");
+        }
+    }
+
+    private static string FormatCost(decimal value) => $"{value:0.00} zl";
+}
