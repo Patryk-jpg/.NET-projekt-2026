@@ -64,6 +64,8 @@ builder.Services.AddScoped<IMedicalRecordService>(sp => new MedicalRecordService
     sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IProcedureService, ProcedureService>();
+builder.Services.AddScoped<IMedicationService, MedicationService>();
+builder.Services.AddScoped<IVisitMedicalService, VisitMedicalService>();
 
 var app = builder.Build();
 
