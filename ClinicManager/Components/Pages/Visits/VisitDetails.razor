@@ -63,6 +63,21 @@ else
         <div class="alert alert-success">@successMessage</div>
     }
 
+    <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="pdfAuth">
+        <div class="mb-3">
+            @if (visit.Status == VisitStatus.Completed)
+            {
+                <a class="btn btn-outline-primary" href="@($"/visits/{visit.Id}/pdf")" target="_blank">
+                    Pobierz PDF karty wizyty
+                </a>
+            }
+            else
+            {
+                <span class="text-muted">PDF karty wizyty bedzie dostepny po zakonczeniu wizyty.</span>
+            }
+        </div>
+    </AuthorizeView>
+
     <section class="mt-4">
         <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
             <h2 class="h4 mb-0">Procedury</h2>
