@@ -1,14 +1,19 @@
 @page "/visits/{Id:int}"
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using ClinicManager.Core.Constants
 @using ClinicManager.Core.DTOs
 @using ClinicManager.Core.Enums
 @using ClinicManager.Core.Interfaces
+@using System.Security.Claims
 @attribute [Authorize(Roles = $"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")]
 
 @inject IVisitService VisitService
 @inject IProcedureService ProcedureService
+@inject IMedicationService MedicationService
+@inject IVisitMedicalService VisitMedicalService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
 <PageTitle>Wizyta</PageTitle>
@@ -120,6 +125,151 @@ else
         </AuthorizeView>
     </section>
 
+    <section class="mt-4">
+        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
+            <h2 class="h4 mb-0">Recepty</h2>
+            <strong>Suma lekow: @FormatCost(prescriptionsTotal)</strong>
+        </div>
+
+        @if (prescriptions.Count == 0)
+        {
+            <p class="text-muted">Brak lekow przypisanych do tej wizyty.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Lek</th>
+                        <th>Procedura</th>
+                        <th>Dawkowanie</th>
+                        <th class="text-end">Ilosc</th>
+                        <th class="text-end">Koszt</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var prescription in prescriptions)
+                    {
+                        <tr>
+                            <td>@prescription.MedicationName</td>
+                            <td>@prescription.ProcedureDescription</td>
+                            <td>@prescription.Dosage</td>
+                            <td class="text-end">@prescription.Quantity</td>
+                            <td class="text-end">@FormatCost(prescription.TotalCost)</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="prescriptionAuth">
+            @if (procedures.Count == 0)
+            {
+                <p class="text-muted">Najpierw dodaj procedure, zeby przypisac do niej lek.</p>
+            }
+            else if (medications.Count == 0)
+            {
+                <p class="text-muted">Brak lekow w katalogu. Dodaj lek w katalogu lekow.</p>
+            }
+            else
+            {
+                <EditForm Model="prescriptionForm" OnValidSubmit="AddPrescriptionAsync" FormName="add-prescription">
+                    <DataAnnotationsValidator />
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label" for="prescription-procedure">Procedura</label>
+                            <InputSelect id="prescription-procedure"
+                                         class="form-select"
+                                         @bind-Value="prescriptionForm.ProcedurePerformedId">
+                                <option value="0">Wybierz procedure</option>
+                                @foreach (var procedure in procedures)
+                                {
+                                    <option value="@procedure.Id">@procedure.Description</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => prescriptionForm.ProcedurePerformedId)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="prescription-medication">Lek</label>
+                            <InputSelect id="prescription-medication"
+                                         class="form-select"
+                                         @bind-Value="prescriptionForm.MedicationId">
+                                <option value="0">Wybierz lek</option>
+                                @foreach (var medication in medications)
+                                {
+                                    <option value="@medication.Id">@medication.Name (@FormatCost(medication.UnitPrice))</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => prescriptionForm.MedicationId)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="prescription-dosage">Dawkowanie</label>
+                            <InputText id="prescription-dosage"
+                                       class="form-control"
+                                       @bind-Value="prescriptionForm.Dosage" />
+                            <ValidationMessage For="@(() => prescriptionForm.Dosage)" />
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label" for="prescription-quantity">Ilosc</label>
+                            <InputNumber id="prescription-quantity"
+                                         class="form-control"
+                                         @bind-Value="prescriptionForm.Quantity" />
+                            <ValidationMessage For="@(() => prescriptionForm.Quantity)" />
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button type="submit" class="btn btn-primary" disabled="@addingPrescription">
+                                Dodaj lek
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </AuthorizeView>
+    </section>
+
+    <section class="mt-4">
+        <h2 class="h4">Notatki kliniczne</h2>
+
+        @if (notes.Count == 0)
+        {
+            <p class="text-muted">Brak notatek klinicznych dla tej wizyty.</p>
+        }
+        else
+        {
+            <div class="list-group mb-3">
+                @foreach (var note in notes)
+                {
+                    <article class="list-group-item">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between">
+                            <strong>@note.AuthorId</strong>
+                            <span class="text-muted">@note.Timestamp.ToString("yyyy-MM-dd HH:mm")</span>
+                        </div>
+                        <p class="mb-0">@note.Content</p>
+                    </article>
+                }
+            </div>
+        }
+
+        <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="noteAuth">
+            <EditForm Model="noteForm" OnValidSubmit="AddNoteAsync" FormName="add-clinical-note">
+                <DataAnnotationsValidator />
+                <div class="mb-2">
+                    <label class="form-label" for="clinical-note">Tresc notatki</label>
+                    <InputTextArea id="clinical-note"
+                                   class="form-control"
+                                   @bind-Value="noteForm.Content"
+                                   rows="3" />
+                    <ValidationMessage For="@(() => noteForm.Content)" />
+                </div>
+                <button type="submit" class="btn btn-primary" disabled="@addingNote">
+                    Dodaj notatke
+                </button>
+            </EditForm>
+        </AuthorizeView>
+    </section>
+
     <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
         <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
             @{
@@ -159,11 +309,19 @@ else
 
     private VisitDto? visit;
     private List<ProcedurePerformedDto> procedures = [];
+    private List<MedicationOptionDto> medications = [];
+    private List<PrescribedMedicationDto> prescriptions = [];
+    private List<ClinicalNoteDto> notes = [];
     private ProcedurePerformedFormDto procedureForm = new();
+    private PrescribedMedicationFormDto prescriptionForm = new();
+    private ClinicalNoteFormDto noteForm = new();
     private decimal proceduresTotal;
+    private decimal prescriptionsTotal;
     private bool loading = true;
     private bool busy;
     private bool addingProcedure;
+    private bool addingPrescription;
+    private bool addingNote;
     private string? errorMessage;
     private string? successMessage;
 
@@ -180,7 +338,9 @@ else
             visit = await VisitService.GetByIdAsync(Id);
             if (visit is not null)
             {
+                medications = (await MedicationService.GetOptionsAsync()).ToList();
                 await LoadProceduresAsync(visit.Id);
+                await LoadMedicalEntriesAsync(visit.Id);
             }
         }
         catch (Exception ex)
@@ -197,6 +357,17 @@ else
     {
         procedures = (await ProcedureService.GetForVisitAsync(visitId)).ToList();
         proceduresTotal = await ProcedureService.GetVisitTotalCostAsync(visitId);
+        if (prescriptionForm.ProcedurePerformedId == 0 && procedures.Count > 0)
+        {
+            prescriptionForm.ProcedurePerformedId = procedures[0].Id;
+        }
+    }
+
+    private async Task LoadMedicalEntriesAsync(int visitId)
+    {
+        prescriptions = (await VisitMedicalService.GetPrescriptionsForVisitAsync(visitId)).ToList();
+        prescriptionsTotal = await VisitMedicalService.GetPrescriptionTotalCostAsync(visitId);
+        notes = (await VisitMedicalService.GetNotesForVisitAsync(visitId)).ToList();
     }
 
     private async Task AddProcedureAsync()
@@ -223,6 +394,66 @@ else
         finally
         {
             addingProcedure = false;
+        }
+    }
+
+    private async Task AddPrescriptionAsync()
+    {
+        if (visit is null)
+        {
+            return;
+        }
+
+        addingPrescription = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            await VisitMedicalService.AddPrescriptionAsync(visit.Id, prescriptionForm);
+            prescriptionForm = new PrescribedMedicationFormDto
+            {
+                ProcedurePerformedId = procedures.FirstOrDefault()?.Id ?? 0,
+                Quantity = 1
+            };
+            await LoadMedicalEntriesAsync(visit.Id);
+            successMessage = "Lek zostal dopisany do wizyty.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            addingPrescription = false;
+        }
+    }
+
+    private async Task AddNoteAsync()
+    {
+        if (visit is null)
+        {
+            return;
+        }
+
+        addingNote = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var authorId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? authState.User.Identity?.Name ?? string.Empty;
+            await VisitMedicalService.AddNoteAsync(visit.Id, noteForm, authorId);
+            noteForm = new ClinicalNoteFormDto();
+            await LoadMedicalEntriesAsync(visit.Id);
+            successMessage = "Notatka kliniczna zostala dodana.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            addingNote = false;
         }
     }
 
