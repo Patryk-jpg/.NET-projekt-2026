@@ -16,6 +16,7 @@ public static class IdentitySeeder
     public const string AdminEmail = "admin@clinic.local";
     public const string DoctorEmail = "lekarz@clinic.local";
     public const string CardiologistEmail = "kardiolog@clinic.local";
+    public const string PediatricianEmail = "pediatra@clinic.local";
     public const string ReceptionistEmail = "rejestratorka@clinic.local";
     public const string DefaultPassword = "Test123!";
 
@@ -36,6 +37,7 @@ public static class IdentitySeeder
         await EnsureUserAsync(userManager, AdminEmail, Roles.Admin);
         await EnsureUserAsync(userManager, DoctorEmail, Roles.Lekarz, DoctorUserId);
         await EnsureUserAsync(userManager, CardiologistEmail, Roles.Lekarz, CardiologistUserId);
+        await EnsureUserAsync(userManager, PediatricianEmail, Roles.Lekarz, PediatricianUserId);
         await EnsureUserAsync(userManager, ReceptionistEmail, Roles.Rejestratorka);
 
         await EnsureDemoDataAsync(dbContext, cancellationToken);

@@ -11,6 +11,7 @@ obj/
 wwwroot/uploads/
 logs/
 nbomber-report/
+ClinicManager/reports/
 appsettings.Development.json
 *.db
 
