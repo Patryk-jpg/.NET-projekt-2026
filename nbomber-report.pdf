@@ -1,85 +1,93 @@
 %PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document (opensource)
 1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
+<<
+/F1 2 0 R /F2 3 0 R
+>>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
 endobj
 4 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+<<
+/Contents 9 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 8 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
 endobj
 5 0 obj
-<< /Length 1319 >>
+<<
+/Contents 10 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 8 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+6 0 obj
+<<
+/PageMode /UseNone /Pages 8 0 R /Type /Catalog
+>>
+endobj
+7 0 obj
+<<
+/Author (\(anonymous\)) /CreationDate (D:20260615153604+02'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260615153604+02'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (\(unspecified\)) /Title (\(anonymous\)) /Trapped /False
+>>
+endobj
+8 0 obj
+<<
+/Count 2 /Kids [ 4 0 R 5 0 R ] /Type /Pages
+>>
+endobj
+9 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 1551
+>>
 stream
-BT
-/F1 13 Tf
-50 790 Td
-(US-19 Endpoint i test wydajnosci NBomber) Tj
-0 -21 Td
-() Tj
-0 -21 Td
-(Endpoint: GET /api/visits/active) Tj
-0 -21 Td
-(Opis: zwraca aktywne wizyty Planned oraz InProgress z pacjentem i lekarzem.) Tj
-0 -21 Td
-(OpenAPI: /openapi/v1.json) Tj
-0 -21 Td
-() Tj
-0 -21 Td
-(Scenariusz NBomber:) Tj
-0 -21 Td
-(- projekt: PerformanceTests) Tj
-0 -21 Td
-(- komenda: dotnet run --project .\\\\PerformanceTests\\\\PerformanceTests.csproj -- http://localhost:5187) Tj
-0 -21 Td
-(- obciazenie: 50 requestow na sekunde przez 2 sekundy) Tj
-0 -21 Td
-(- liczba zadan: okolo 100 requestow HTTP) Tj
-0 -21 Td
-() Tj
-0 -21 Td
-(Metryki raportu:) Tj
-0 -21 Td
-(- czas odpowiedzi: generowany przez NBomber w raporcie HTML/CSV) Tj
-0 -21 Td
-(- throughput: generowany przez NBomber jako requesty na sekunde) Tj
-0 -21 Td
-(- bledy: generowane przez NBomber na podstawie statusow HTTP != 2xx) Tj
-0 -21 Td
-() Tj
-0 -21 Td
-(Wynik lokalny do uzupelnienia po uruchomieniu:) Tj
-0 -21 Td
-(- response time p95: wynik z raportu NBomber) Tj
-0 -21 Td
-(- throughput: wynik z raportu NBomber) Tj
-0 -21 Td
-(- errors: wynik z raportu NBomber) Tj
-0 -21 Td
-() Tj
-0 -21 Td
-(Uwagi:) Tj
-0 -21 Td
-(- test wymaga dzialajacej aplikacji webowej i dostepnej bazy danych) Tj
-0 -21 Td
-(- zwykle testy jednostkowe nie uruchamiaja obciazenia NBomber) Tj
-0 -21 Td
-ET
-endstream
+Gb!kr8TWWE'YaHG]VCt$+9:1QdmMP7:#dQmXI1%k0F?Kq84)9E<VlB:+@q>_-'N&(*SD(A[sX6TqoF<ILGdt/#4QpFo61T[LZLZQQaj94L:>?amh`(UoJuFd*\dr5J?[+Ucjn%%&Jkrok^abEU3VJ'3O$jijP79:IH!"#L+$CUE;Ab+cL,3DL"tmdJf0BS;GRps<2ll1A=dVEb,\lW\UroNQjq:p[P.D9'qae)`[Ee9SQ9,gL%,CeRuE$_!A57@hdd(Z/??@?l[0h(84RZYj34Blg=.(7)'q*FG_Ci(>U#uf/1@Uh)p1ku[`Mk<9#>b<LfLV$=<0.t_lL`]fP_-0Mj9+[K*JT`G2""EeUCTe#eY"Sd<r(fH6p2$Tad_k@ap#ujLb1!p2DDQ44&]6[pDA^pU\F6]TSp,Vm2CdYVA(W]EAD;>`3&uP6kso`m]%@*1XeWo:`W1k<Jh))*hgii34c!n)*,lLlIkX*hD&G*Co`g5)SRnPE:Pl[@+K=KIrFRW9R8gI28g'F.(Y^IE34YIOJ`0')7E_>9sq6S&!oJ?q%-!$*IGB='bTf=DlgCYS,MkF3BkIoX^pa_E-*13^[2Bs"/WTaP:mo7OK;k$peJ1hfFdo-?G-I8tAcA$dTbfg?H=j#^k.t]m?V3ALfJjY@0]5^dT6`%=<UNN'cet5U,KI+ids84PY6"6>l.a&6ot_Ns@kmE5<8%mU$C>CuVb.jR#"q"n,s.NX>`++UX@RWoun(dpo(EY^_7WqDV8N3:B6%?Jh9mnl]K##qLiAU#[%mVr'+@gqAB4[R')D-DPr%@uUjrQhrN+Xb!%8><>Qg-RO'D_h,mC=mYQAho/3T'e%)+=t<V3!)uSRjXoo'gDDRnE?6\%)QRWgn*eKM'icj6Af]G^4_qaU'n2-M[naTBR1!h&Y=6+M"f)p8M)8NfR,cu]"N'WNj^J@lFi<KH.$&N,PKiC;Lq?]5]1Xk6SaXiajgL2Qbd<#TUhX`J+*$-U4]^+qja<Zb=JV"hXBp3(%*g3"0mP!_1"A]55O(p:W4fUuPl!9%c^<<_2tR%Sri[qF&G\-gJV9%r.$rl!4.ZO]hd>;Wd.T0\fl>ln0nl)d7/I$H\4q=-4d@g`(nUUKr'-!"G9Fc_6%lnu(ZFm,@RD\iN%Q)4:3[2a+2m(Z6Z<8B\AnUE!2"K)/-p)%9FQ\DpUjkY/UbZNKQ>*tqsrmRUVb?^JkP%V%]<?%jTFCSOJ_OKGPQaM"3tbureXma>EAH#Vu<g_J5a(J^<5oPiUU+&k>pORYdG'W$GW<ZH3JV3YKh%PQEi](S:o7g5Nf<5V0>8&dsSS.j5eb'%8GN`SHYo*P#ReOfL7qm>[J:+'?TO-%()PqVRC;!NI`L+C&Za5%orE(^4T,@83WFUc&_X8,5L.'Z4]ko@TJQ#_SJ/]V&Wp?%eunnhT2U/jFiH,A^@l(Br5sbnL2D`$+t!=`/3)0![gMGk@&rc$76`iU1b/q1!C-6-pHe;)oDLm7@=>/?c4SsJW#P4:34gD(+2Y4o:Z=PMOn7trr]NKag8ni(OlP#lQJ[~>endstream
+endobj
+10 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 772
+>>
+stream
+GasakbAQ&g&A7<Zp?38@:""@MQ2jM67G8%2,o9`oCcW90MA-3Xlap%73D!L9+=Mfag"i'!18)/0oIVPCb8ci"$lFct*`ts"aM5Pk*rH>s*gn?#9gZuGM%[\235[kkVUK[o$(`WnW<1u?A+Z`c$jku0/2";a;L%^Anf?f[?_LR?OsoG6*_bPijYPgck6p]`5a![q8I?_K76CtJTCQ!hJmTT%,i8c;W`S0A*&QG[+Cl@HGS3gBq(Q1)QZ5'A&TJ6*P4Xn$Qo6&[f0?0UE%g?!c?R@U4\?PY)pu@Z!.Fp\[$T#n$V,-$f,Q.q\Xeau0-UJ4NO%t<4`fsS1ua1\m'>W3D<@NeO(**?b1\?*_60>HLL*@2L>M_2,nW[V&>_)M.F2p?/I,Bn=kX@bbohr?SW`*-TMe,Ni4SQ]"&::j@_T?hA8.8./\EpZ:-dElg9cBd+J$ZGJUfe>:csTfF=o,s_2)P3A&Yk(7N?`*gs^/7eFVF!Gj2m.j9AQ7KbB"XHU\]1ebE0Ydhc4RNW-b;7cB-8_:hn8db8\M8$'st%CfU,O[[l'@Nu:"ei%BM[?[3%rOB5b=uN,_-tV'V.:G[H#D![MT4*7>$E]ieMo#&9r$3%;*'Agi"@>Ln)_W]U06^F.'1H7/qWFHpkR@BtZ0c.-[iX$UcMfCJd*jTeJ&X3oYI6bTie?mN/Yhs_/RS<[>&U3lVD[l%6f$Cc/3K$+],TGYgSPU\OQ1$0^CaAR&W^Y1otEUs0"!9ahHK*g,F0[[=@;QomX0#q~>endstream
 endobj
 xref
-0 6
+0 11
 0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000241 00000 n 
-0000000311 00000 n 
+0000000061 00000 n 
+0000000102 00000 n 
+0000000209 00000 n 
+0000000321 00000 n 
+0000000524 00000 n 
+0000000728 00000 n 
+0000000796 00000 n 
+0000001076 00000 n 
+0000001141 00000 n 
+0000002783 00000 n 
 trailer
-<< /Size 6 /Root 1 0 R >>
+<<
+/ID 
+[<9b0e3ccdfae3bfc89081bc1404ad4168><9b0e3ccdfae3bfc89081bc1404ad4168>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 7 0 R
+/Root 6 0 R
+/Size 11
+>>
 startxref
-1682
+3646
 %%EOF

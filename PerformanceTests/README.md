@@ -8,4 +8,4 @@ Uruchom aplikacje webowa, a potem w drugim terminalu:
 dotnet run --project .\PerformanceTests\PerformanceTests.csproj -- http://localhost:5187
 ```
 
-Scenariusz wysyla okolo 100 zapytan: 50 requestow na sekunde przez 2 sekundy. Wyniki NBomber zapisuje do katalogu `nbomber-report`.
+Scenariusz uruchamia 50 stalych wirtualnych uzytkownikow i wykonuje lacznie 100 zapytan HTTP. Wyniki NBomber zapisuje do katalogu `nbomber-report`.

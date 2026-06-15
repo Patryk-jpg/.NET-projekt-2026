@@ -19,10 +19,9 @@ var scenario = Scenario.Create("active_visits_endpoint", async context =>
 })
 .WithoutWarmUp()
 .WithLoadSimulations(
-    Simulation.Inject(
-        rate: 50,
-        interval: TimeSpan.FromSeconds(1),
-        during: TimeSpan.FromSeconds(2)));
+    Simulation.IterationsForConstant(
+        copies: 50,
+        iterations: 100));
 
 NBomberRunner
     .RegisterScenarios(scenario)
