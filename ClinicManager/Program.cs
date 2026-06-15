@@ -77,6 +77,7 @@ builder.Services.AddScoped<IMedicalRecordService>(sp => new MedicalRecordService
 builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IProcedureService, ProcedureService>();
 builder.Services.AddScoped<IMedicationService, MedicationService>();
+builder.Services.AddScoped<IDoctorAdminService, DoctorAdminService>();
 builder.Services.AddScoped<IVisitMedicalService, VisitMedicalService>();
 builder.Services.AddScoped<IVisitPdfService, VisitPdfService>();
 builder.Services.AddScoped<ICostReportService, CostReportService>();
