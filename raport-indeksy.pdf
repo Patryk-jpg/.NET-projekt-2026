@@ -1,0 +1,116 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 2447 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+12 TL
+(ClinicManager - raport indeksy \(US-14\)) Tj
+T*
+() Tj
+T*
+(Cel: pokazac indeksy dodane dla czestych zapytan aplikacji.) Tj
+T*
+() Tj
+T*
+(Indeks 1: IX_Patients_Pesel) Tj
+T*
+(- Tabela: Patients) Tj
+T*
+(- Kolumna: Pesel) Tj
+T*
+(- Typ: UNIQUE) Tj
+T*
+(- Uzasadnienie: wyszukiwanie pacjenta po PESEL oraz walidacja unikalnosci PESEL.) Tj
+T*
+(- Konfiguracja EF: builder.Entity<Patient>\(\).HasIndex\(patient => patient.Pesel\).IsUnique\(\);) Tj
+T*
+(- Migracja: migrationBuilder.CreateIndex\(name: "IX_Patients_Pesel", table: "Patients", column: "Pesel", unique: true\);) Tj
+T*
+() Tj
+T*
+(Zapytanie testowe przed/po indeksie:) Tj
+T*
+(SELECT TOP\(1\) * FROM Patients WHERE Pesel = @pesel;) Tj
+T*
+(Przed indeksem: oczekiwany Table Scan / Clustered Index Scan przy wiekszej tabeli.) Tj
+T*
+(Po indeksie: oczekiwany Index Seek na IX_Patients_Pesel.) Tj
+T*
+() Tj
+T*
+(Indeks 2: IX_Visits_DoctorId_ScheduledAt) Tj
+T*
+(- Tabela: Visits) Tj
+T*
+(- Kolumny: DoctorId, ScheduledAt) Tj
+T*
+(- Typ: non-unique composite index) Tj
+T*
+(- Uzasadnienie: lista wizyt lekarza i filtrowanie po dacie korzystaja z DoctorId oraz ScheduledAt.) Tj
+T*
+(- Konfiguracja EF: builder.Entity<Visit>\(\).HasIndex\(visit => new { visit.DoctorId, visit.ScheduledAt }\);) Tj
+T*
+(- Migracja: migrationBuilder.CreateIndex\(name: "IX_Visits_DoctorId_ScheduledAt", table: "Visits", columns: new[] { "DoctorId", "ScheduledAt" }\);) Tj
+T*
+() Tj
+T*
+(Zapytanie testowe przed/po indeksie:) Tj
+T*
+(SELECT * FROM Visits WHERE DoctorId = @doctorId AND ScheduledAt >= @from AND ScheduledAt < @to ORDER BY ScheduledAt;) Tj
+T*
+(Przed indeksem: oczekiwany skan tabeli lub sortowanie po filtracji.) Tj
+T*
+(Po indeksie: oczekiwany Index Seek/Range Seek na IX_Visits_DoctorId_ScheduledAt oraz mniejszy koszt sortowania.) Tj
+T*
+() Tj
+T*
+(Weryfikacja w kodzie:) Tj
+T*
+(- ApplicationDbContext zawiera DbSety domenowe i konfiguracje indeksow.) Tj
+T*
+(- Migracja 20260608194617_InitialCreate tworzy oba indeksy.) Tj
+T*
+(- Testy IndexConfigurationTests pilnuja indeksow w metadanych EF Core.) Tj
+T*
+() Tj
+T*
+(Miejsce na zrzuty planu zapytania:) Tj
+T*
+(1. Przed indeksem: wykonac zapytanie na kopii bazy bez indeksu i zapisac plan.) Tj
+T*
+(2. Po indeksie: wykonac to samo zapytanie po migracji i porownac operator oraz koszt.) Tj
+T*
+() Tj
+T*
+(Wniosek: indeks PESEL optymalizuje punktowe wyszukiwanie pacjenta, a indeks DoctorId+ScheduledAt optymalizuje widoki harmonogramu lekarza.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2810
+%%EOF

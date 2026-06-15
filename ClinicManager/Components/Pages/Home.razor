@@ -1,36 +1,101 @@
-﻿@page "/"
+@page "/"
 @using ClinicManager.Core.Constants
 
 <PageTitle>ClinicManager</PageTitle>
 
-<h1>ClinicManager</h1>
-
-<p>System zarzadzania przychodnia medyczna.</p>
+<div class="page-header">
+    <h1>ClinicManager</h1>
+    <span class="text-muted">System zarzadzania przychodnia medyczna</span>
+</div>
 
 <AuthorizeView>
     <Authorized>
-        <div class="alert alert-success">
-            Zalogowano jako <strong>@context.User.Identity?.Name</strong>.
-            Role: <em>@(string.Join(", ", context.User.Claims.Where(c => c.Type.EndsWith("/role") || c.Type == "role").Select(c => c.Value)))</em>.
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <span>Zalogowano jako <strong>@context.User.Identity?.Name</strong></span>
+            <span class="vr"></span>
+            <span class="text-muted small">Role: @string.Join(", ", context.User.Claims
+                .Where(c => c.Type.EndsWith("/role") || c.Type == "role")
+                .Select(c => c.Value))</span>
         </div>
 
-        <h2>Twoje skroty</h2>
-        <ul>
-            <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
-                <li><a href="/admin">Panel administratora</a></li>
+        <h2 class="section-header">Szybki dostep</h2>
+
+        <div class="row g-3">
+            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")" Context="pCtx">
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/patients" class="dash-card">
+                        <div class="dash-icon">&#128101;</div>
+                        <div class="dash-title">Pacjenci</div>
+                        <div class="dash-desc">Lista, wyszukiwanie, kartoteka</div>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/visits" class="dash-card">
+                        <div class="dash-icon">&#128197;</div>
+                        <div class="dash-title">Wizyty</div>
+                        <div class="dash-desc">Harmonogram i statusy wizyt</div>
+                    </a>
+                </div>
             </AuthorizeView>
-            <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="doctorContext">
-                <li><a href="/lekarz">Panel lekarza</a></li>
+
+            <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")" Context="dCtx">
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/lekarz" class="dash-card">
+                        <div class="dash-icon">&#129657;</div>
+                        <div class="dash-title">Panel lekarza</div>
+                        <div class="dash-desc">Dzisiejsze i nadchodzace wizyty</div>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/medications" class="dash-card">
+                        <div class="dash-icon">&#128138;</div>
+                        <div class="dash-title">Leki</div>
+                        <div class="dash-desc">Katalog lekow i ceny</div>
+                    </a>
+                </div>
             </AuthorizeView>
-            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")" Context="receptionContext">
-                <li><a href="/rejestratorka">Panel rejestracji</a></li>
+
+            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")" Context="rCtx">
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/rejestratorka" class="dash-card">
+                        <div class="dash-icon">&#128203;</div>
+                        <div class="dash-title">Rejestracja</div>
+                        <div class="dash-desc">Panel rejestratorki</div>
+                    </a>
+                </div>
             </AuthorizeView>
-        </ul>
+
+            <AuthorizeView Roles="@Roles.Admin" Context="aCtx">
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/admin" class="dash-card">
+                        <div class="dash-icon">&#9881;</div>
+                        <div class="dash-title">Administracja</div>
+                        <div class="dash-desc">Uzytkownicy, lekarze, ustawienia</div>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <a href="/reports/costs" class="dash-card">
+                        <div class="dash-icon">&#128200;</div>
+                        <div class="dash-title">Raporty</div>
+                        <div class="dash-desc">Koszty swiadczen, PDF</div>
+                    </a>
+                </div>
+            </AuthorizeView>
+        </div>
     </Authorized>
     <NotAuthorized>
-        <div class="alert alert-info">
-            Aby skorzystac z systemu, <a href="/Account/Login">zaloguj sie</a>
-            lub <a href="/Account/Register">zarejestruj nowe konto</a>.
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-5">
+                <div class="clinic-card text-center">
+                    <div style="font-size:3rem;margin-bottom:.75rem">&#127973;</div>
+                    <h2 class="h4 mb-2">Witaj w ClinicManager</h2>
+                    <p class="text-muted mb-3">Zaloguj sie, aby uzyskac dostep do systemu.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/Account/Login" class="btn btn-primary">Zaloguj sie</a>
+                        <a href="/Account/Register" class="btn btn-outline-secondary">Rejestracja</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </NotAuthorized>
 </AuthorizeView>

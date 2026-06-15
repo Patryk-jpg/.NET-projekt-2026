@@ -1,0 +1,58 @@
+@page "/medications/new"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Lekarz},{Roles.Admin}")]
+
+@inject IMedicationService MedicationService
+@inject NavigationManager Navigation
+
+<PageTitle>Nowy lek</PageTitle>
+
+<h1>Nowy lek</h1>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="medication-create">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+
+    <MedicationFormFields Form="form" />
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary" disabled="@saving">
+            @(saving ? "Zapisywanie..." : "Zapisz")
+        </button>
+        <a class="btn btn-link" href="/medications">Anuluj</a>
+    </div>
+</EditForm>
+
+@code {
+    private MedicationFormDto form = new();
+    private bool saving;
+    private string? errorMessage;
+
+    private async Task SubmitAsync()
+    {
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            await MedicationService.CreateAsync(form);
+            Navigation.NavigateTo("/medications");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

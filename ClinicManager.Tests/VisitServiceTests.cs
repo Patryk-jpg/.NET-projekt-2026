@@ -1,9 +1,10 @@
-﻿using ClinicManager.Core.DTOs;
+﻿using ClinicManager.Core.Constants;
+using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Enums;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
-using ClinicManager.Services;
+using ClinicManager.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -66,10 +67,12 @@ public class VisitServiceTests
 
         Assert.True(dto.Id > 0);
         Assert.Equal(VisitStatus.Planned, dto.Status);
-        Assert.Equal("Zaplanowana", dto.StatusLabel);
-        Assert.Equal("Jan Kowalski", dto.PatientFullName);
-        Assert.Equal("Anna Nowak", dto.DoctorFullName);
-        Assert.Equal("Internista", dto.DoctorSpecialization);
+        Assert.Equal("Zaplanowana", VisitStatusLabels.GetLabel(dto.Status));
+        Assert.Equal("Jan", dto.Patient.FirstName);
+        Assert.Equal("Kowalski", dto.Patient.LastName);
+        Assert.Equal("Anna", dto.Doctor.FirstName);
+        Assert.Equal("Nowak", dto.Doctor.LastName);
+        Assert.Equal("Internista", dto.Doctor.Specialization);
     }
 
     [Fact]
@@ -134,7 +137,7 @@ public class VisitServiceTests
         var updated = await service.ChangeStatusAsync(visit.Id, VisitStatus.InProgress);
 
         Assert.Equal(VisitStatus.InProgress, updated.Status);
-        Assert.Equal("W trakcie", updated.StatusLabel);
+        Assert.Equal("W trakcie", VisitStatusLabels.GetLabel(updated.Status));
     }
 
     [Fact]
@@ -169,6 +172,24 @@ public class VisitServiceTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.ChangeStatusAsync(visit.Id, VisitStatus.Planned));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.ChangeStatusAsync(visit.Id, VisitStatus.InProgress));
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_PozwalaAnulowacPlannedIApotemBlokujeWyjscieZCancelled()
+    {
+        // Anulowanie jest jedyna dozwolona alternatywa dla rozpoczecia zaplanowanej wizyty.
+        // Po Cancelled status staje sie finalny, wiec dalsze przejscia musza byc odrzucone.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1));
+        seed.Doctors.Add(SampleDoctor(1));
+        await seed.SaveChangesAsync();
+        var visit = await service.CreateAsync(FormFor(1, 1));
+
+        var cancelled = await service.ChangeStatusAsync(visit.Id, VisitStatus.Cancelled);
+
+        Assert.Equal(VisitStatus.Cancelled, cancelled.Status);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.ChangeStatusAsync(visit.Id, VisitStatus.InProgress));
     }
@@ -221,8 +242,8 @@ public class VisitServiceTests
         var newDate = DateTime.UtcNow.AddDays(5);
         var updated = await service.UpdateAsync(visit.Id, FormFor(2, 2, newDate));
 
-        Assert.Equal(2, updated.PatientId);
-        Assert.Equal(2, updated.DoctorId);
+        Assert.Equal(2, updated.Patient.Id);
+        Assert.Equal(2, updated.Doctor.Id);
         Assert.Equal(newDate.Year, updated.ScheduledAt.Year);
         Assert.Equal(newDate.Day, updated.ScheduledAt.Day);
     }
@@ -243,7 +264,7 @@ public class VisitServiceTests
         var visits = await service.GetForPatientAsync(1);
 
         Assert.Equal(2, visits.Count);
-        Assert.All(visits, v => Assert.Equal(1, v.PatientId));
+        Assert.All(visits, v => Assert.Equal(1, v.Patient.Id));
         Assert.True(visits[0].ScheduledAt > visits[1].ScheduledAt);
     }
 

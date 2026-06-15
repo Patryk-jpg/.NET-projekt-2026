@@ -1,44 +1,43 @@
-using ClinicManager.Core.Constants;
 using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Models;
+using Riok.Mapperly.Abstractions;
 
 namespace ClinicManager.Infrastructure.Mappers;
 
 /// <summary>
-/// Mapper wizyt na DTO. Zamiast Mapperly piszemy ten mapping recznie, bo DTO zawiera pola
-/// zlozone z wlasciwosci nawigacyjnych (pelne imie pacjenta/lekarza, polska etykieta statusu),
-/// ktorych Mapperly nie potrafi wygenerowac w czystej formie - kod recznie tlumaczy intencje.
+/// Mapperly mapper miedzy <see cref="Visit"/> a DTO. Prywatne metody
+/// <c>ToPatientSummary</c> i <c>ToDoctorSummary</c> sa automatycznie
+/// uzywane przez Mapperly przy mapowaniu zagniezdonych obiektow w <c>ToDto</c>.
 /// </summary>
-public class VisitMapper
+[Mapper]
+public partial class VisitMapper
 {
-    public VisitDto ToDto(Visit visit)
-    {
-        ArgumentNullException.ThrowIfNull(visit);
-        if (visit.Patient is null || visit.Doctor is null)
-        {
-            throw new InvalidOperationException(
-                "Visit musi miec zaladowane navigation properties Patient i Doctor (uzyj Include).");
-        }
+    [MapperIgnoreSource(nameof(Visit.PatientId))]
+    [MapperIgnoreSource(nameof(Visit.DoctorId))]
+    [MapperIgnoreSource(nameof(Visit.Procedures))]
+    [MapperIgnoreSource(nameof(Visit.Notes))]
+    public partial VisitDto ToDto(Visit visit);
 
-        return new VisitDto(
-            visit.Id,
-            visit.PatientId,
-            $"{visit.Patient.FirstName} {visit.Patient.LastName}",
-            visit.Patient.Pesel,
-            visit.DoctorId,
-            $"{visit.Doctor.FirstName} {visit.Doctor.LastName}",
-            visit.Doctor.Specialization,
-            visit.ScheduledAt,
-            visit.Status,
-            VisitStatusLabels.GetLabel(visit.Status),
-            visit.CreatedAt);
-    }
+    [MapperIgnoreSource(nameof(Doctor.UserId))]
+    [MapperIgnoreSource(nameof(Doctor.Visits))]
+    public partial DoctorOptionDto ToOption(Doctor doctor);
 
     public IReadOnlyList<VisitDto> ToDtoList(IEnumerable<Visit> visits) =>
         visits.Select(ToDto).ToList();
 
-    public DoctorOptionDto ToOption(Doctor doctor) => new(
-        doctor.Id,
-        $"{doctor.FirstName} {doctor.LastName}",
-        doctor.Specialization);
+    [MapperIgnoreSource(nameof(Patient.InsuranceNumber))]
+    [MapperIgnoreSource(nameof(Patient.DateOfBirth))]
+    [MapperIgnoreSource(nameof(Patient.Phone))]
+    [MapperIgnoreSource(nameof(Patient.Email))]
+    [MapperIgnoreSource(nameof(Patient.IsDeleted))]
+    [MapperIgnoreSource(nameof(Patient.DeletedAt))]
+    [MapperIgnoreSource(nameof(Patient.AnonymizedAt))]
+    [MapperIgnoreSource(nameof(Patient.CreatedAt))]
+    [MapperIgnoreSource(nameof(Patient.MedicalRecord))]
+    [MapperIgnoreSource(nameof(Patient.Visits))]
+    private partial PatientSummaryDto ToPatientSummary(Patient patient);
+
+    [MapperIgnoreSource(nameof(Doctor.UserId))]
+    [MapperIgnoreSource(nameof(Doctor.Visits))]
+    private partial DoctorSummaryDto ToDoctorSummary(Doctor doctor);
 }

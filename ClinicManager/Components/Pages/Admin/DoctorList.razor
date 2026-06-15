@@ -1,0 +1,149 @@
+@page "/admin/doctors"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = Roles.Admin)]
+
+@inject IDoctorAdminService DoctorAdminService
+
+<PageTitle>Lekarze</PageTitle>
+
+<h1>Lekarze</h1>
+
+<div class="row g-2 mb-3">
+    <div class="col-sm-6 col-md-5">
+        <input type="text"
+               class="form-control"
+               placeholder="Imie, nazwisko lub specjalizacja"
+               @bind="query"
+               @bind:event="oninput"
+               @onkeyup="OnKeyUp" />
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary" @onclick="LoadAsync">Szukaj</button>
+    </div>
+    <div class="col-auto ms-auto">
+        <a class="btn btn-success" href="/admin/doctors/new">+ Dodaj lekarza</a>
+    </div>
+</div>
+
+@if (successMessage is not null)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (doctors.Count == 0)
+{
+    <div class="alert alert-info">Brak lekarzy pasujacych do filtra.</div>
+}
+else
+{
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+        <tr>
+            <th>Lekarz</th>
+            <th>Specjalizacja</th>
+            <th>Email konta</th>
+            <th>Status</th>
+            <th class="text-end">Akcje</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var doctor in doctors)
+        {
+            <tr>
+                <td>@doctor.FirstName @doctor.LastName</td>
+                <td>@doctor.Specialization</td>
+                <td>@doctor.Email</td>
+                <td>
+                    @if (doctor.IsAccountActive)
+                    {
+                        <span class="badge text-bg-success">Aktywne</span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary">Nieaktywne</span>
+                    }
+                </td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" href="@($"/admin/doctors/{doctor.Id}/edit")">Edytuj</a>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            disabled="@(!doctor.IsAccountActive)"
+                            @onclick="() => DeactivateAsync(doctor.Id)">
+                        Dezaktywuj
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string? query;
+    private List<DoctorAdminDto> doctors = [];
+    private bool loading;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            doctors = (await DoctorAdminService.SearchAsync(query)).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udalo sie pobrac lekarzy: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OnKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task DeactivateAsync(int id)
+    {
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            var ok = await DoctorAdminService.DeactivateAsync(id);
+            successMessage = ok
+                ? "Konto lekarza zostalo zdezaktywowane."
+                : "Lekarz nie istnieje albo nie ma powiazanego konta.";
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}

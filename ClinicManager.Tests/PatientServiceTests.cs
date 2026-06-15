@@ -1,8 +1,8 @@
 ﻿using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
-using ClinicManager.Services;
+using ClinicManager.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -134,6 +134,23 @@ public class PatientServiceTests
     }
 
     [Fact]
+    public async Task SearchAsync_PrzycinaBialeZnakiZFiltra()
+    {
+        // UI moze przekazac filtr ze spacjami na poczatku lub koncu.
+        // Serwis powinien je przyciac, zeby zwykle wyszukiwanie po nazwisku nadal dzialalo.
+        var (service, seed) = BuildSut();
+        seed.Patients.AddRange(
+            SamplePatient(1, "Anna", "Nowak", "85020200002"),
+            SamplePatient(2, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        var result = await service.SearchAsync("  Nowak  ");
+
+        var only = Assert.Single(result);
+        Assert.Equal("Nowak", only.LastName);
+    }
+
+    [Fact]
     public async Task SearchAsync_PomijaUsunietych_DomyslnieIncludeDeletedFalse()
     {
         // Soft delete (US-13): pacjent z IsDeleted = true nie moze pojawic sie na liscie
@@ -176,6 +193,47 @@ public class PatientServiceTests
         var (service, _) = BuildSut();
 
         var result = await service.GetByPeselAsync("99999999999");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_DomyslnieUkrywaSoftDeletedPacjenta()
+    {
+        // Standardowy odczyt szczegolow tez powinien respektowac soft delete,
+        // zeby bezposredni URL nie omijal ukrywania usunietych pacjentow.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var result = await service.GetByIdAsync(1);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ZwracaSoftDeletedGdyIncludeDeletedTrue()
+    {
+        // Jawny tryb archiwalny pozwala serwisowi odzyskac rekord bez fizycznego usuwania go z bazy.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var result = await service.GetByIdAsync(1, includeDeleted: true);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsDeleted);
+    }
+
+    [Fact]
+    public async Task GetByPeselAsync_DomyslnieUkrywaSoftDeletedPacjenta()
+    {
+        // Wyszukiwanie po PESEL nie powinno ujawniac usunietego pacjenta bez jawnego includeDeleted.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var result = await service.GetByPeselAsync("65040400004");
 
         Assert.Null(result);
     }
@@ -254,13 +312,97 @@ public class PatientServiceTests
     }
 
     [Fact]
+    public async Task UpdateAsync_BlokujeEdycjeSoftDeletedPacjenta()
+    {
+        // Po soft delete nie edytujemy juz danych pacjenta standardowym CRUD-em,
+        // zeby nie mieszac archiwum z aktywna kartoteka.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Usuniety", "Test", "65040400004", isDeleted: true));
+        await seed.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.UpdateAsync(1, new PatientFormDto
+            {
+                FirstName = "Nowe",
+                LastName = "Dane",
+                Pesel = "65040400004",
+                InsuranceNumber = "NFZ-999",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Phone = "500100200",
+                Email = "nowe@example.com"
+            }));
+
+        Assert.Contains("usuniety", ex.Message);
+    }
+
+    [Fact]
     public async Task SoftDeleteAsync_ZwracaFalse_GdyPacjentNieIstnieje()
     {
-        // UI pokazuje przycisk "Usun" tylko dla istniejacych rekordow,
-        // ale serwis i tak musi byc odporny na nieistniejace Id.
         var (service, _) = BuildSut();
 
         var ok = await service.SoftDeleteAsync(123);
+
+        Assert.False(ok);
+    }
+
+    [Fact]
+    public async Task SoftDeleteAsync_UstawiaDeletedAt()
+    {
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        var before = DateTime.UtcNow;
+        await service.SoftDeleteAsync(1);
+
+        var dto = await service.GetByIdAsync(1, includeDeleted: true);
+        Assert.NotNull(dto);
+        Assert.True(dto.DeletedAt.HasValue);
+        Assert.True(dto.DeletedAt.Value >= before);
+    }
+
+    [Fact]
+    public async Task AnonymizeAsync_ZastepujeDaneOsobowe()
+    {
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        var ok = await service.AnonymizeAsync(1);
+
+        Assert.True(ok);
+        var dto = await service.GetByIdAsync(1, includeDeleted: true);
+        Assert.NotNull(dto);
+        Assert.True(dto.IsDeleted);
+        Assert.True(dto.AnonymizedAt.HasValue);
+        Assert.Equal("ANONIMIZOWANY", dto.FirstName);
+        Assert.Equal("ANONIMIZOWANY", dto.LastName);
+        Assert.Equal("00000000000", dto.Pesel);
+        Assert.Equal("ANONIMIZOWANY", dto.InsuranceNumber);
+    }
+
+    [Fact]
+    public async Task AnonymizeAsync_Idempotentna_NieNadpisujeAnonymizedAt()
+    {
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        await service.AnonymizeAsync(1);
+        var first = (await service.GetByIdAsync(1, includeDeleted: true))!.AnonymizedAt;
+
+        await service.AnonymizeAsync(1);
+        var second = (await service.GetByIdAsync(1, includeDeleted: true))!.AnonymizedAt;
+
+        Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public async Task AnonymizeAsync_ZwracaFalse_GdyPacjentNieIstnieje()
+    {
+        var (service, _) = BuildSut();
+
+        var ok = await service.AnonymizeAsync(999);
 
         Assert.False(ok);
     }

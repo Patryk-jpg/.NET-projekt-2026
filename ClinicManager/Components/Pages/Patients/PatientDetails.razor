@@ -27,9 +27,13 @@ else
 {
     <h1>@patient.FirstName @patient.LastName</h1>
 
-    @if (patient.IsDeleted)
+    @if (patient.AnonymizedAt.HasValue)
     {
-        <div class="alert alert-secondary">Pacjent jest oznaczony jako usuniety (soft delete).</div>
+        <div class="alert alert-danger">Dane pacjenta zostaly zanonimizowane (RODO) @patient.AnonymizedAt.Value.ToString("yyyy-MM-dd HH:mm") UTC.</div>
+    }
+    else if (patient.IsDeleted)
+    {
+        <div class="alert alert-secondary">Pacjent jest oznaczony jako usuniety od @(patient.DeletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—") UTC.</div>
     }
 
     <dl class="row">
@@ -55,10 +59,14 @@ else
     <div class="d-flex gap-2 mb-4">
         <a class="btn btn-info" href="@($"/patients/{Id}/record")">Kartoteka i dokumenty</a>
         <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
-            <a class="btn btn-secondary" href="@($"/patients/{Id}/edit")">Edytuj</a>
             @if (!patient.IsDeleted)
             {
+                <a class="btn btn-secondary" href="@($"/patients/{Id}/edit")">Edytuj</a>
                 <button class="btn btn-outline-danger" @onclick="SoftDeleteAsync">Usun (soft delete)</button>
+            }
+            @if (patient.IsDeleted && !patient.AnonymizedAt.HasValue)
+            {
+                <button class="btn btn-danger" @onclick="AnonymizeAsync">Anonimizuj (RODO)</button>
             }
         </AuthorizeView>
         <a class="btn btn-link ms-auto" href="/patients">Wroc do listy</a>
@@ -91,8 +99,8 @@ else
                 {
                     <tr>
                         <td>@visit.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@visit.DoctorFullName <span class="text-muted small">(@visit.DoctorSpecialization)</span></td>
-                        <td><span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span></td>
+                        <td>@visit.Doctor.FirstName @visit.Doctor.LastName <span class="text-muted small">(@visit.Doctor.Specialization)</span></td>
+                        <td><VisitStatusBadge Status="visit.Status" /></td>
                         <td class="text-end">
                             <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
                         </td>
@@ -122,21 +130,16 @@ else
 
     private async Task SoftDeleteAsync()
     {
-        if (patient is null)
-        {
-            return;
-        }
-
+        if (patient is null) return;
         await PatientService.SoftDeleteAsync(patient.Id);
         Navigation.NavigateTo("/patients");
     }
 
-    private static string StatusBadgeClass(VisitStatus status) => status switch
+    private async Task AnonymizeAsync()
     {
-        VisitStatus.Planned => "bg-primary",
-        VisitStatus.InProgress => "bg-warning text-dark",
-        VisitStatus.Completed => "bg-success",
-        VisitStatus.Cancelled => "bg-secondary",
-        _ => "bg-light text-dark"
-    };
+        if (patient is null) return;
+        await PatientService.AnonymizeAsync(patient.Id);
+        patient = await PatientService.GetByIdAsync(Id, includeDeleted: true);
+    }
+
 }

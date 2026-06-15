@@ -1,11 +1,11 @@
-using ClinicManager.Core.DTOs;
+﻿using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Interfaces;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClinicManager.Services;
+namespace ClinicManager.Infrastructure.Services;
 
 /// <summary>
 /// Implementacja CRUD pacjentow oparta na <see cref="ApplicationDbContext"/>.
@@ -48,15 +48,26 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         return result.Select(mapper.ToDto).ToList();
     }
 
-    public async Task<PatientDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<PatientDto?> GetByIdAsync(
+        int id,
+        bool includeDeleted = false,
+        CancellationToken cancellationToken = default)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var patient = await db.Patients.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        var patients = db.Patients.AsNoTracking();
+        if (!includeDeleted)
+        {
+            patients = patients.Where(patient => !patient.IsDeleted);
+        }
+
+        var patient = await patients.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         return patient is null ? null : mapper.ToDto(patient);
     }
 
-    public async Task<PatientDto?> GetByPeselAsync(string pesel, CancellationToken cancellationToken = default)
+    public async Task<PatientDto?> GetByPeselAsync(
+        string pesel,
+        bool includeDeleted = false,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(pesel))
         {
@@ -64,8 +75,13 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         }
 
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var patient = await db.Patients.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Pesel == pesel, cancellationToken);
+        var patients = db.Patients.AsNoTracking();
+        if (!includeDeleted)
+        {
+            patients = patients.Where(patient => !patient.IsDeleted);
+        }
+
+        var patient = await patients.FirstOrDefaultAsync(p => p.Pesel == pesel, cancellationToken);
         return patient is null ? null : mapper.ToDto(patient);
     }
 
@@ -79,7 +95,7 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
             .AnyAsync(p => p.Pesel == form.Pesel, cancellationToken);
         if (existing)
         {
-            throw new InvalidOperationException($"Pacjent o numerze PESEL '{form.Pesel}' juz istnieje.");
+            throw new InvalidOperationException("Pacjent o podanym numerze PESEL juz istnieje.");
         }
 
         var entity = mapper.ToEntity(form);
@@ -103,13 +119,18 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
             return null;
         }
 
+        if (entity.IsDeleted)
+        {
+            throw new InvalidOperationException("Nie mozna edytowac pacjenta oznaczonego jako usuniety.");
+        }
+
         if (!string.Equals(entity.Pesel, form.Pesel, StringComparison.Ordinal))
         {
             var clash = await db.Patients
                 .AnyAsync(p => p.Id != id && p.Pesel == form.Pesel, cancellationToken);
             if (clash)
             {
-                throw new InvalidOperationException($"Pacjent o numerze PESEL '{form.Pesel}' juz istnieje.");
+                throw new InvalidOperationException("Pacjent o podanym numerze PESEL juz istnieje.");
             }
         }
 
@@ -134,6 +155,38 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         }
 
         entity.IsDeleted = true;
+        entity.DeletedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> AnonymizeAsync(int id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.Patients
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        if (entity.AnonymizedAt.HasValue)
+        {
+            return true;
+        }
+
+        var now = DateTime.UtcNow;
+        entity.FirstName = "ANONIMIZOWANY";
+        entity.LastName = "ANONIMIZOWANY";
+        entity.Pesel = "00000000000";
+        entity.InsuranceNumber = "ANONIMIZOWANY";
+        entity.Phone = "000000000";
+        entity.Email = $"anonimizowany-{id}@usunieto.local";
+        entity.DateOfBirth = new DateTime(1900, 1, 1);
+        entity.IsDeleted = true;
+        entity.DeletedAt ??= now;
+        entity.AnonymizedAt = now;
+
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }

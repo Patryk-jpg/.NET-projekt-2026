@@ -40,6 +40,11 @@ public interface IVisitService
     Task<VisitDto> ChangeStatusAsync(int id, VisitStatus newStatus, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Wizyty przypisane do lekarza (na podstawie Identity UserId). Opcjonalnie filtrowane po dacie.
+    /// </summary>
+    Task<IReadOnlyList<VisitDto>> GetForDoctorAsync(string userId, DateOnly? date = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Lista lekarzy do listy rozwijanej w formularzu wizyty.
     /// </summary>
     Task<IReadOnlyList<DoctorOptionDto>> GetDoctorOptionsAsync(CancellationToken cancellationToken = default);

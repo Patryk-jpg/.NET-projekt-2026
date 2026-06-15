@@ -25,3 +25,14 @@ jobs:
 
       - name: Run tests
         run: dotnet test ClinicManager.sln --configuration Release --no-build --verbosity normal
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --file ClinicManager/Dockerfile --tag clinicmanager:ci .

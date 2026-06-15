@@ -65,15 +65,15 @@ else
                 <tr>
                     <td>@visit.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
                     <td>
-                        <a href="@($"/patients/{visit.PatientId}")">@visit.PatientFullName</a>
-                        <div class="text-muted small"><code>@visit.PatientPesel</code></div>
+                        <a href="@($"/patients/{visit.Patient.Id}")">@visit.Patient.FirstName @visit.Patient.LastName</a>
+                        <div class="text-muted small"><code>@visit.Patient.Pesel</code></div>
                     </td>
                     <td>
-                        @visit.DoctorFullName
-                        <div class="text-muted small">@visit.DoctorSpecialization</div>
+                        @visit.Doctor.FirstName @visit.Doctor.LastName
+                        <div class="text-muted small">@visit.Doctor.Specialization</div>
                     </td>
                     <td>
-                        <span class="badge @StatusBadgeClass(visit.Status)">@visit.StatusLabel</span>
+                        <VisitStatusBadge Status="visit.Status" />
                     </td>
                     <td class="text-end">
                         <a class="btn btn-sm btn-outline-primary" href="@($"/visits/{visit.Id}")">Szczegoly</a>
@@ -114,12 +114,4 @@ else
         }
     }
 
-    private static string StatusBadgeClass(VisitStatus status) => status switch
-    {
-        VisitStatus.Planned => "bg-primary",
-        VisitStatus.InProgress => "bg-warning text-dark",
-        VisitStatus.Completed => "bg-success",
-        VisitStatus.Cancelled => "bg-secondary",
-        _ => "bg-light text-dark"
-    };
 }

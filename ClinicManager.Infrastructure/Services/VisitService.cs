@@ -1,13 +1,13 @@
-using ClinicManager.Core.Constants;
+﻿using ClinicManager.Core.Constants;
 using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Enums;
 using ClinicManager.Core.Interfaces;
 using ClinicManager.Core.Models;
-using ClinicManager.Data;
+using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClinicManager.Services;
+namespace ClinicManager.Infrastructure.Services;
 
 /// <summary>
 /// Implementacja logiki wizyt. Tak jak <c>PatientService</c> i <c>MedicalRecordService</c>
@@ -143,6 +143,36 @@ public class VisitService(
         visit.Status = newStatus;
         await db.SaveChangesAsync(cancellationToken);
         return await ReloadAsDtoAsync(db, visit.Id, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<VisitDto>> GetForDoctorAsync(string userId, DateOnly? date = null, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var doctor = await db.Doctors
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
+
+        if (doctor is null)
+        {
+            return Array.Empty<VisitDto>();
+        }
+
+        var query = db.Visits
+            .AsNoTracking()
+            .Include(v => v.Patient)
+            .Include(v => v.Doctor)
+            .Where(v => v.DoctorId == doctor.Id);
+
+        if (date is not null)
+        {
+            var day = date.Value.ToDateTime(TimeOnly.MinValue);
+            query = query.Where(v => v.ScheduledAt.Date == day.Date);
+        }
+
+        var visits = await query
+            .OrderBy(v => v.ScheduledAt)
+            .ToListAsync(cancellationToken);
+        return mapper.ToDtoList(visits);
     }
 
     public async Task<IReadOnlyList<DoctorOptionDto>> GetDoctorOptionsAsync(CancellationToken cancellationToken = default)

@@ -1,0 +1,99 @@
+@page "/medications/{Id:int}/edit"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = $"{Roles.Lekarz},{Roles.Admin}")]
+
+@inject IMedicationService MedicationService
+@inject NavigationManager Navigation
+
+<PageTitle>Edycja leku</PageTitle>
+
+<h1>Edycja leku</h1>
+
+@if (loading)
+{
+    <p class="text-muted">Ladowanie...</p>
+}
+else if (form is null)
+{
+    <div class="alert alert-warning">Lek nie istnieje.</div>
+    <a class="btn btn-link" href="/medications">Wroc do listy</a>
+}
+else
+{
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="medication-edit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <MedicationFormFields Form="form" />
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary" disabled="@saving">
+                @(saving ? "Zapisywanie..." : "Zapisz zmiany")
+            </button>
+            <a class="btn btn-link" href="/medications">Anuluj</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private MedicationFormDto? form;
+    private bool loading = true;
+    private bool saving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var medication = await MedicationService.GetByIdAsync(Id);
+        if (medication is not null)
+        {
+            form = new MedicationFormDto
+            {
+                Name = medication.Name,
+                UnitPrice = medication.UnitPrice
+            };
+        }
+
+        loading = false;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (form is null)
+        {
+            return;
+        }
+
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            var updated = await MedicationService.UpdateAsync(Id, form);
+            if (updated is null)
+            {
+                errorMessage = "Nie znaleziono leku. Mogl zostac usuniety w innej sesji.";
+                return;
+            }
+
+            Navigation.NavigateTo("/medications");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

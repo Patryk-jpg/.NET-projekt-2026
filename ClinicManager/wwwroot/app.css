@@ -1,3 +1,19 @@
+/* ── Clinic brand tokens ── */
+:root {
+    --clinic-primary:    #0d6efd;
+    --clinic-primary-dk: #0a58ca;
+    --clinic-sidebar-bg: #f8f9fa;
+    --clinic-border:     #dee2e6;
+    --clinic-radius:     0.5rem;
+}
+
+/* ── Base ── */
+body {
+    background-color: #f4f6f9;
+    color: #212529;
+    font-size: 0.95rem;
+}
+
 h1:focus {
     outline: none;
 }
@@ -35,4 +51,115 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+/* ── Page header ── */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 2px solid var(--clinic-border);
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ── Cards ── */
+.clinic-card {
+    background: #fff;
+    border: 1px solid var(--clinic-border);
+    border-radius: var(--clinic-radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+/* ── Dashboard shortcut cards ── */
+.dash-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--clinic-border);
+    border-radius: var(--clinic-radius);
+    padding: 1.25rem 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow .15s, border-color .15s;
+    height: 100%;
+}
+
+.dash-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    border-color: var(--clinic-primary);
+    color: inherit;
+    text-decoration: none;
+}
+
+.dash-card .dash-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.dash-card .dash-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.dash-card .dash-desc {
+    font-size: 0.825rem;
+    color: #6c757d;
+}
+
+/* ── Tables ── */
+.table-clinic {
+    background: #fff;
+    border-radius: var(--clinic-radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.table-clinic thead th {
+    background-color: #f0f4ff;
+    border-bottom: 2px solid #c9d8ff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #495057;
+}
+
+/* ── Navbar tweaks ── */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: .04em;
+    font-size: 1.15rem;
+}
+
+/* ── Footer ── */
+.clinic-footer {
+    margin-top: 3rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--clinic-border);
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+/* ── Misc ── */
+.section-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--clinic-border);
 }
