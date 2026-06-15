@@ -134,6 +134,23 @@ public class PatientServiceTests
     }
 
     [Fact]
+    public async Task SearchAsync_PrzycinaBialeZnakiZFiltra()
+    {
+        // UI moze przekazac filtr ze spacjami na poczatku lub koncu.
+        // Serwis powinien je przyciac, zeby zwykle wyszukiwanie po nazwisku nadal dzialalo.
+        var (service, seed) = BuildSut();
+        seed.Patients.AddRange(
+            SamplePatient(1, "Anna", "Nowak", "85020200002"),
+            SamplePatient(2, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        var result = await service.SearchAsync("  Nowak  ");
+
+        var only = Assert.Single(result);
+        Assert.Equal("Nowak", only.LastName);
+    }
+
+    [Fact]
     public async Task SearchAsync_PomijaUsunietych_DomyslnieIncludeDeletedFalse()
     {
         // Soft delete (US-13): pacjent z IsDeleted = true nie moze pojawic sie na liscie

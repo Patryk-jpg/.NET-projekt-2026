@@ -68,6 +68,24 @@ public class CostReportServiceTests
     }
 
     [Fact]
+    public async Task GenerateAsync_WizytaBezProcedurMaKosztZero()
+    {
+        // Raport kosztow ma pokazywac rowniez wizyty bez rozliczonych procedur.
+        // Taki wiersz powinien miec zera, a nie znikac z raportu albo powodowac blad sumowania.
+        var (service, seed) = BuildSut();
+        SeedBaseData(seed);
+        seed.Visits.Add(SampleVisit(2, patientId: 1, doctorId: 1, new DateTime(2026, 1, 20, 12, 0, 0)));
+        await seed.SaveChangesAsync();
+
+        var report = await service.GenerateAsync(new CostReportFilterDto { Year = 2026, Month = 1 });
+
+        var emptyVisitRow = Assert.Single(report.Rows, row => row.VisitId == 2);
+        Assert.Equal(0m, emptyVisitRow.ProcedureCost);
+        Assert.Equal(0m, emptyVisitRow.MedicationCost);
+        Assert.Equal(0m, emptyVisitRow.TotalCost);
+    }
+
+    [Fact]
     public async Task GenerateAsync_MiesiacBezRoku_RzucaWyjatek()
     {
         // Sam miesiac bez roku jest niejednoznaczny, wiec serwis wymaga podania roku.
