@@ -37,7 +37,9 @@ public class Patient
     [StringLength(256, ErrorMessage = "Adres e-mail moze miec maksymalnie 256 znakow.")]
     public string Email { get; set; } = string.Empty;
 
-    public bool IsDeleted { get; set; } = false; // soft delete
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public DateTime? AnonymizedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public MedicalRecord? MedicalRecord { get; set; }

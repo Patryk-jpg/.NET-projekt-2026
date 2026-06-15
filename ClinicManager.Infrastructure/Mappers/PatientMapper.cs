@@ -18,6 +18,8 @@ public partial class PatientMapper
 
     [MapperIgnoreSource(nameof(Patient.Id))]
     [MapperIgnoreSource(nameof(Patient.IsDeleted))]
+    [MapperIgnoreSource(nameof(Patient.DeletedAt))]
+    [MapperIgnoreSource(nameof(Patient.AnonymizedAt))]
     [MapperIgnoreSource(nameof(Patient.CreatedAt))]
     [MapperIgnoreSource(nameof(Patient.MedicalRecord))]
     [MapperIgnoreSource(nameof(Patient.Visits))]
@@ -25,6 +27,8 @@ public partial class PatientMapper
 
     [MapperIgnoreTarget(nameof(Patient.Id))]
     [MapperIgnoreTarget(nameof(Patient.IsDeleted))]
+    [MapperIgnoreTarget(nameof(Patient.DeletedAt))]
+    [MapperIgnoreTarget(nameof(Patient.AnonymizedAt))]
     [MapperIgnoreTarget(nameof(Patient.CreatedAt))]
     [MapperIgnoreTarget(nameof(Patient.MedicalRecord))]
     [MapperIgnoreTarget(nameof(Patient.Visits))]
@@ -32,6 +36,8 @@ public partial class PatientMapper
 
     [MapperIgnoreTarget(nameof(Patient.Id))]
     [MapperIgnoreTarget(nameof(Patient.IsDeleted))]
+    [MapperIgnoreTarget(nameof(Patient.DeletedAt))]
+    [MapperIgnoreTarget(nameof(Patient.AnonymizedAt))]
     [MapperIgnoreTarget(nameof(Patient.CreatedAt))]
     [MapperIgnoreTarget(nameof(Patient.MedicalRecord))]
     [MapperIgnoreTarget(nameof(Patient.Visits))]

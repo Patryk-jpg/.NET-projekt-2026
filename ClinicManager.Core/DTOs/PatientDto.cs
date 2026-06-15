@@ -13,4 +13,6 @@ public record PatientDto(
     string Phone,
     string Email,
     bool IsDeleted,
+    DateTime? DeletedAt,
+    DateTime? AnonymizedAt,
     DateTime CreatedAt);

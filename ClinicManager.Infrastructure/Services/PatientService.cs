@@ -95,7 +95,7 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
             .AnyAsync(p => p.Pesel == form.Pesel, cancellationToken);
         if (existing)
         {
-            throw new InvalidOperationException($"Pacjent o numerze PESEL '{form.Pesel}' juz istnieje.");
+            throw new InvalidOperationException("Pacjent o podanym numerze PESEL juz istnieje.");
         }
 
         var entity = mapper.ToEntity(form);
@@ -130,7 +130,7 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
                 .AnyAsync(p => p.Id != id && p.Pesel == form.Pesel, cancellationToken);
             if (clash)
             {
-                throw new InvalidOperationException($"Pacjent o numerze PESEL '{form.Pesel}' juz istnieje.");
+                throw new InvalidOperationException("Pacjent o podanym numerze PESEL juz istnieje.");
             }
         }
 
@@ -155,6 +155,38 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         }
 
         entity.IsDeleted = true;
+        entity.DeletedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> AnonymizeAsync(int id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.Patients
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        if (entity.AnonymizedAt.HasValue)
+        {
+            return true;
+        }
+
+        var now = DateTime.UtcNow;
+        entity.FirstName = "ANONIMIZOWANY";
+        entity.LastName = "ANONIMIZOWANY";
+        entity.Pesel = "00000000000";
+        entity.InsuranceNumber = "ANONIMIZOWANY";
+        entity.Phone = "000000000";
+        entity.Email = $"anonimizowany-{id}@usunieto.local";
+        entity.DateOfBirth = new DateTime(1900, 1, 1);
+        entity.IsDeleted = true;
+        entity.DeletedAt ??= now;
+        entity.AnonymizedAt = now;
+
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
