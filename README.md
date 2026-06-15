@@ -116,3 +116,18 @@ Konfiguracja znajduje sie w sekcji `UpcomingVisitsReport` w `ClinicManager/appse
 Endpoint `GET /api/visits/active` zwraca aktywne wizyty (`Planned`, `InProgress`) razem z danymi pacjenta i lekarza. OpenAPI jest dostepne pod adresem `/openapi/v1.json`.
 
 Test wydajnosciowy znajduje sie w `PerformanceTests`. Najpierw uruchom aplikacje, potem w drugim terminalu wykonaj `dotnet run --project .\PerformanceTests\PerformanceTests.csproj -- http://localhost:5187`. Scenariusz wysyla okolo 100 zapytan: 50 requestow na sekunde przez 2 sekundy, a raport NBomber zapisuje w katalogu `nbomber-report`.
+
+## Dane demonstracyjne
+
+Przy starcie aplikacji `IdentitySeeder` uruchamia migracje, tworzy role i konta testowe, a potem idempotentnie uzupelnia dane demonstracyjne.
+
+Konta testowe:
+
+| Email | Haslo | Rola |
+|-------|-------|------|
+| admin@clinic.local | Test123! | Admin |
+| lekarz@clinic.local | Test123! | Lekarz |
+| kardiolog@clinic.local | Test123! | Lekarz |
+| rejestratorka@clinic.local | Test123! | Rejestratorka |
+
+Seed obejmuje pacjentow testowych, lekarzy, kartoteki medyczne, leki, procedury, recepty, notatki kliniczne oraz wizyty w statusach `Planned`, `InProgress`, `Completed` i `Cancelled`. Dane sa dodawane tylko wtedy, gdy jeszcze ich nie ma, wiec kolejne uruchomienia aplikacji nie powinny tworzyc duplikatow.
