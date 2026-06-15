@@ -16,9 +16,15 @@ public interface IPatientService
         bool includeDeleted = false,
         CancellationToken cancellationToken = default);
 
-    Task<PatientDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<PatientDto?> GetByIdAsync(
+        int id,
+        bool includeDeleted = false,
+        CancellationToken cancellationToken = default);
 
-    Task<PatientDto?> GetByPeselAsync(string pesel, CancellationToken cancellationToken = default);
+    Task<PatientDto?> GetByPeselAsync(
+        string pesel,
+        bool includeDeleted = false,
+        CancellationToken cancellationToken = default);
 
     Task<PatientDto> CreateAsync(PatientFormDto form, CancellationToken cancellationToken = default);
 

@@ -1,0 +1,85 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1319 >>
+stream
+BT
+/F1 13 Tf
+50 790 Td
+(US-19 Endpoint i test wydajnosci NBomber) Tj
+0 -21 Td
+() Tj
+0 -21 Td
+(Endpoint: GET /api/visits/active) Tj
+0 -21 Td
+(Opis: zwraca aktywne wizyty Planned oraz InProgress z pacjentem i lekarzem.) Tj
+0 -21 Td
+(OpenAPI: /openapi/v1.json) Tj
+0 -21 Td
+() Tj
+0 -21 Td
+(Scenariusz NBomber:) Tj
+0 -21 Td
+(- projekt: PerformanceTests) Tj
+0 -21 Td
+(- komenda: dotnet run --project .\\\\PerformanceTests\\\\PerformanceTests.csproj -- http://localhost:5187) Tj
+0 -21 Td
+(- obciazenie: 50 requestow na sekunde przez 2 sekundy) Tj
+0 -21 Td
+(- liczba zadan: okolo 100 requestow HTTP) Tj
+0 -21 Td
+() Tj
+0 -21 Td
+(Metryki raportu:) Tj
+0 -21 Td
+(- czas odpowiedzi: generowany przez NBomber w raporcie HTML/CSV) Tj
+0 -21 Td
+(- throughput: generowany przez NBomber jako requesty na sekunde) Tj
+0 -21 Td
+(- bledy: generowane przez NBomber na podstawie statusow HTTP != 2xx) Tj
+0 -21 Td
+() Tj
+0 -21 Td
+(Wynik lokalny do uzupelnienia po uruchomieniu:) Tj
+0 -21 Td
+(- response time p95: wynik z raportu NBomber) Tj
+0 -21 Td
+(- throughput: wynik z raportu NBomber) Tj
+0 -21 Td
+(- errors: wynik z raportu NBomber) Tj
+0 -21 Td
+() Tj
+0 -21 Td
+(Uwagi:) Tj
+0 -21 Td
+(- test wymaga dzialajacej aplikacji webowej i dostepnej bazy danych) Tj
+0 -21 Td
+(- zwykle testy jednostkowe nie uruchamiaja obciazenia NBomber) Tj
+0 -21 Td
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1682
+%%EOF

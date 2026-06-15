@@ -1,0 +1,84 @@
+@page "/admin/doctors/new"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using ClinicManager.Core.Constants
+@using ClinicManager.Core.DTOs
+@using ClinicManager.Core.Interfaces
+@attribute [Authorize(Roles = Roles.Admin)]
+
+@inject IDoctorAdminService DoctorAdminService
+@inject NavigationManager Navigation
+
+<PageTitle>Nowy lekarz</PageTitle>
+
+<h1>Nowy lekarz</h1>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="form" OnValidSubmit="SubmitAsync" FormName="doctor-create">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label" for="doctor-first-name">Imie</label>
+            <InputText id="doctor-first-name" class="form-control" @bind-Value="form.FirstName" />
+            <ValidationMessage For="@(() => form.FirstName)" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="doctor-last-name">Nazwisko</label>
+            <InputText id="doctor-last-name" class="form-control" @bind-Value="form.LastName" />
+            <ValidationMessage For="@(() => form.LastName)" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="doctor-specialization">Specjalizacja</label>
+            <InputText id="doctor-specialization" class="form-control" @bind-Value="form.Specialization" />
+            <ValidationMessage For="@(() => form.Specialization)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="doctor-email">Email konta</label>
+            <InputText id="doctor-email" class="form-control" @bind-Value="form.Email" />
+            <ValidationMessage For="@(() => form.Email)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="doctor-password">Haslo startowe</label>
+            <InputText id="doctor-password" type="password" class="form-control" @bind-Value="form.Password" />
+            <ValidationMessage For="@(() => form.Password)" />
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary" disabled="@saving">
+            @(saving ? "Zapisywanie..." : "Zapisz")
+        </button>
+        <a class="btn btn-link" href="/admin/doctors">Anuluj</a>
+    </div>
+</EditForm>
+
+@code {
+    private DoctorCreateFormDto form = new();
+    private bool saving;
+    private string? errorMessage;
+
+    private async Task SubmitAsync()
+    {
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            await DoctorAdminService.CreateAsync(form);
+            Navigation.NavigateTo("/admin/doctors");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

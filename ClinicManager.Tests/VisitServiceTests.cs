@@ -177,6 +177,24 @@ public class VisitServiceTests
     }
 
     [Fact]
+    public async Task ChangeStatusAsync_PozwalaAnulowacPlannedIApotemBlokujeWyjscieZCancelled()
+    {
+        // Anulowanie jest jedyna dozwolona alternatywa dla rozpoczecia zaplanowanej wizyty.
+        // Po Cancelled status staje sie finalny, wiec dalsze przejscia musza byc odrzucone.
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1));
+        seed.Doctors.Add(SampleDoctor(1));
+        await seed.SaveChangesAsync();
+        var visit = await service.CreateAsync(FormFor(1, 1));
+
+        var cancelled = await service.ChangeStatusAsync(visit.Id, VisitStatus.Cancelled);
+
+        Assert.Equal(VisitStatus.Cancelled, cancelled.Status);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.ChangeStatusAsync(visit.Id, VisitStatus.InProgress));
+    }
+
+    [Fact]
     public async Task ChangeStatusAsync_ZNiezmienionymStatusem_JestIdempotentne()
     {
         // Klikniecie ponownie tego samego statusu nie moze rzucac bledu - to czesta sytuacja,

@@ -1,22 +1,30 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ClinicManager.BackgroundServices;
 using ClinicManager.Components;
 using ClinicManager.Components.Account;
+using ClinicManager.Configuration;
 using ClinicManager.Core.Constants;
+using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Interfaces;
+using ClinicManager.Endpoints;
 using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using ClinicManager.Infrastructure.Services;
 using ClinicManager.Services;
+using NLog.Web;
 using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 QuestPDF.Settings.License = LicenseType.Community;
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddOpenApi();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -69,8 +77,15 @@ builder.Services.AddScoped<IMedicalRecordService>(sp => new MedicalRecordService
 builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IProcedureService, ProcedureService>();
 builder.Services.AddScoped<IMedicationService, MedicationService>();
+builder.Services.AddScoped<IDoctorAdminService, DoctorAdminService>();
 builder.Services.AddScoped<IVisitMedicalService, VisitMedicalService>();
 builder.Services.AddScoped<IVisitPdfService, VisitPdfService>();
+builder.Services.AddScoped<ICostReportService, CostReportService>();
+builder.Services.AddScoped<ICostReportPdfService, CostReportPdfService>();
+builder.Services.Configure<UpcomingVisitsReportOptions>(
+    builder.Configuration.GetSection("UpcomingVisitsReport"));
+builder.Services.AddScoped<IUpcomingVisitsReportService, UpcomingVisitsReportService>();
+builder.Services.AddHostedService<UpcomingVisitsReportBackgroundService>();
 
 var app = builder.Build();
 
@@ -95,6 +110,8 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapOpenApi();
+app.MapVisitsApi();
 app.MapGet("/visits/{id:int}/pdf", async (
         int id,
         IVisitPdfService visitPdfService,
@@ -111,6 +128,31 @@ app.MapGet("/visits/{id:int}/pdf", async (
         }
     })
     .RequireAuthorization(policy => policy.RequireRole(Roles.Lekarz, Roles.Admin));
+app.MapGet("/reports/costs/pdf", async (
+        int? patientId,
+        int? doctorId,
+        int? year,
+        int? month,
+        ICostReportPdfService costReportPdfService,
+        CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            var pdf = await costReportPdfService.GenerateAsync(new CostReportFilterDto
+            {
+                PatientId = patientId,
+                DoctorId = doctorId,
+                Year = year,
+                Month = month
+            }, cancellationToken);
+            return Results.File(pdf, "application/pdf", "raport-kosztow.pdf");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+    })
+    .RequireAuthorization(policy => policy.RequireRole(Roles.Admin));
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

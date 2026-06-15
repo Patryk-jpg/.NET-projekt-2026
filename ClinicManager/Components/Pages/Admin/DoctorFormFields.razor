@@ -1,0 +1,23 @@
+@using ClinicManager.Core.DTOs
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label" for="doctor-first-name">Imie</label>
+        <InputText id="doctor-first-name" class="form-control" @bind-Value="Form.FirstName" />
+        <ValidationMessage For="@(() => Form.FirstName)" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="doctor-last-name">Nazwisko</label>
+        <InputText id="doctor-last-name" class="form-control" @bind-Value="Form.LastName" />
+        <ValidationMessage For="@(() => Form.LastName)" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="doctor-specialization">Specjalizacja</label>
+        <InputText id="doctor-specialization" class="form-control" @bind-Value="Form.Specialization" />
+        <ValidationMessage For="@(() => Form.Specialization)" />
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public DoctorEditFormDto Form { get; set; } = default!;
+}

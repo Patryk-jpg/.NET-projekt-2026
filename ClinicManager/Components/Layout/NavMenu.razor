@@ -13,6 +13,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/admin">Panel administratora</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/doctors">Lekarze</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/reports/costs">Raport kosztow</a>
+                </li>
             </AuthorizeView>
             <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")">
                 <li class="nav-item">

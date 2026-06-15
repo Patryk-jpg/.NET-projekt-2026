@@ -48,15 +48,26 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         return result.Select(mapper.ToDto).ToList();
     }
 
-    public async Task<PatientDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<PatientDto?> GetByIdAsync(
+        int id,
+        bool includeDeleted = false,
+        CancellationToken cancellationToken = default)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var patient = await db.Patients.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        var patients = db.Patients.AsNoTracking();
+        if (!includeDeleted)
+        {
+            patients = patients.Where(patient => !patient.IsDeleted);
+        }
+
+        var patient = await patients.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         return patient is null ? null : mapper.ToDto(patient);
     }
 
-    public async Task<PatientDto?> GetByPeselAsync(string pesel, CancellationToken cancellationToken = default)
+    public async Task<PatientDto?> GetByPeselAsync(
+        string pesel,
+        bool includeDeleted = false,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(pesel))
         {
@@ -64,8 +75,13 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         }
 
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var patient = await db.Patients.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Pesel == pesel, cancellationToken);
+        var patients = db.Patients.AsNoTracking();
+        if (!includeDeleted)
+        {
+            patients = patients.Where(patient => !patient.IsDeleted);
+        }
+
+        var patient = await patients.FirstOrDefaultAsync(p => p.Pesel == pesel, cancellationToken);
         return patient is null ? null : mapper.ToDto(patient);
     }
 
@@ -101,6 +117,11 @@ public class PatientService(IDbContextFactory<ApplicationDbContext> dbContextFac
         if (entity is null)
         {
             return null;
+        }
+
+        if (entity.IsDeleted)
+        {
+            throw new InvalidOperationException("Nie mozna edytowac pacjenta oznaczonego jako usuniety.");
         }
 
         if (!string.Equals(entity.Pesel, form.Pesel, StringComparison.Ordinal))
