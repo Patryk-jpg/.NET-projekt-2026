@@ -11,7 +11,7 @@ COPY ["ClinicManager.sln", "."]
 COPY ["ClinicManager/ClinicManager.csproj", "ClinicManager/"]
 COPY ["ClinicManager.Core/ClinicManager.Core.csproj", "ClinicManager.Core/"]
 COPY ["ClinicManager.Infrastructure/ClinicManager.Infrastructure.csproj", "ClinicManager.Infrastructure/"]
-RUN dotnet restore "ClinicManager.sln"
+RUN dotnet restore "ClinicManager/ClinicManager.csproj"
 COPY . .
 WORKDIR "/src/ClinicManager"
 RUN dotnet build "./ClinicManager.csproj" -c $BUILD_CONFIGURATION -o /app/build
