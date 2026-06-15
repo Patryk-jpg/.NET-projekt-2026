@@ -7,51 +7,61 @@ using QuestPDF.Infrastructure;
 
 namespace ClinicManager.Services;
 
-public class CostReportPdfService(ICostReportService costReportService) : ICostReportPdfService
+public class CostReportPdfService(
+    ICostReportService costReportService,
+    ILogger<CostReportPdfService> logger) : ICostReportPdfService
 {
     public async Task<byte[]> GenerateAsync(
         CostReportFilterDto filter,
         CancellationToken cancellationToken = default)
     {
-        var report = await costReportService.GenerateAsync(filter, cancellationToken);
-
-        return Document.Create(container =>
+        try
         {
-            container.Page(page =>
+            var report = await costReportService.GenerateAsync(filter, cancellationToken);
+
+            return Document.Create(container =>
             {
-                page.Size(PageSizes.A4.Landscape());
-                page.Margin(35);
-                page.DefaultTextStyle(style => style.FontSize(9));
-
-                page.Header().Column(column =>
+                container.Page(page =>
                 {
-                    column.Item().Text("Raport kosztow swiadczen")
-                        .FontSize(20)
-                        .SemiBold()
-                        .FontColor(Colors.Blue.Darken2);
-                    column.Item().Text(FilterDescription(report.Filter))
-                        .FontSize(10)
-                        .FontColor(Colors.Grey.Darken1);
-                });
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(35);
+                    page.DefaultTextStyle(style => style.FontSize(9));
 
-                page.Content().PaddingVertical(16).Column(column =>
-                {
-                    column.Spacing(12);
-                    column.Item().Element(content => Summary(content, report));
-                    column.Item().Element(content => RowsTable(content, report.Rows));
-                });
+                    page.Header().Column(column =>
+                    {
+                        column.Item().Text("Raport kosztow swiadczen")
+                            .FontSize(20)
+                            .SemiBold()
+                            .FontColor(Colors.Blue.Darken2);
+                        column.Item().Text(FilterDescription(report.Filter))
+                            .FontSize(10)
+                            .FontColor(Colors.Grey.Darken1);
+                    });
 
-                page.Footer().AlignCenter().Text(text =>
-                {
-                    text.Span("Wygenerowano: ");
-                    text.Span(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
-                    text.Span(" | Strona ");
-                    text.CurrentPageNumber();
-                    text.Span(" / ");
-                    text.TotalPages();
+                    page.Content().PaddingVertical(16).Column(column =>
+                    {
+                        column.Spacing(12);
+                        column.Item().Element(content => Summary(content, report));
+                        column.Item().Element(content => RowsTable(content, report.Rows));
+                    });
+
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.Span("Wygenerowano: ");
+                        text.Span(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                        text.Span(" | Strona ");
+                        text.CurrentPageNumber();
+                        text.Span(" / ");
+                        text.TotalPages();
+                    });
                 });
-            });
-        }).GeneratePdf();
+            }).GeneratePdf();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Nie udalo sie wygenerowac PDF raportu kosztow.");
+            throw;
+        }
     }
 
     private static void Summary(IContainer container, CostReportDto report)

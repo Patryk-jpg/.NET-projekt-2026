@@ -10,10 +10,13 @@ using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using ClinicManager.Infrastructure.Services;
 using ClinicManager.Services;
+using NLog.Web;
 using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 QuestPDF.Settings.License = LicenseType.Community;
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

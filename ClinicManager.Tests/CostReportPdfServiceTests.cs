@@ -2,6 +2,7 @@ using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Enums;
 using ClinicManager.Core.Interfaces;
 using ClinicManager.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using QuestPDF.Infrastructure;
 using Xunit;
 
@@ -18,7 +19,9 @@ public class CostReportPdfServiceTests
     public async Task GenerateAsync_ZwracaPdfDlaAktualnychFiltrow()
     {
         // Eksport PDF powinien korzystac z tego samego filtra, ktory zasila widok raportu.
-        var service = new CostReportPdfService(new FakeCostReportService());
+        var service = new CostReportPdfService(
+            new FakeCostReportService(),
+            NullLogger<CostReportPdfService>.Instance);
 
         var pdf = await service.GenerateAsync(new CostReportFilterDto { Year = 2026, Month = 1 });
 

@@ -90,4 +90,17 @@ jobs:
     needs: build-and-test
 ```
 
+## NLog
+
+Projekt uzywa `NLog.Web.AspNetCore` i konfiguracji `ClinicManager/nlog.config`.
+
+Najwazniejsze ustawienia:
+
+- bledy aplikacji trafiaja do `logs/errors.log`,
+- logi techniczne sa wypisywane takze na konsole,
+- katalog `logs/` jest ignorowany przez git,
+- w kodzie uzywamy standardowego `ILogger<T>`, a NLog jest providerem podlaczonym w `Program.cs`.
+
+Przyklad uzycia znajduje sie w `CostReportPdfService`: blad generowania PDF raportu kosztow jest logowany przez `logger.LogError(...)`, bez dopisywania danych wrazliwych pacjenta do komunikatu.
+
 Pipeline działa na `ubuntu-latest` — środowisko czyste przy każdym uruchomieniu.
