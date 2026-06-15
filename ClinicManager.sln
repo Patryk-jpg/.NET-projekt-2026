@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicManager.Infrastructur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicManager.Tests", "ClinicManager.Tests\ClinicManager.Tests.csproj", "{D0B0054A-18EE-4505-B85D-A4A54CE6BBDD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTests", "PerformanceTests\PerformanceTests.csproj", "{CB219554-000B-4CFD-B9F1-C95999DE0897}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{D0B0054A-18EE-4505-B85D-A4A54CE6BBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0B0054A-18EE-4505-B85D-A4A54CE6BBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0B0054A-18EE-4505-B85D-A4A54CE6BBDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB219554-000B-4CFD-B9F1-C95999DE0897}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB219554-000B-4CFD-B9F1-C95999DE0897}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB219554-000B-4CFD-B9F1-C95999DE0897}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB219554-000B-4CFD-B9F1-C95999DE0897}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
