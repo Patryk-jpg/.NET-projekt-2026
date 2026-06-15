@@ -1,71 +1,82 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using ClinicManager.Core.Constants
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">ClinicManager</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/">&#127973; ClinicManager</a>
 
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-                <a class="nav-link" href="/">Strona glowna</a>
-            </li>
-            <AuthorizeView Roles="@Roles.Admin">
-                <li class="nav-item">
-                    <a class="nav-link" href="/admin">Panel administratora</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/admin/doctors">Lekarze</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/reports/costs">Raport kosztow</a>
-                </li>
-            </AuthorizeView>
-            <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")">
-                <li class="nav-item">
-                    <a class="nav-link" href="/lekarz">Panel lekarza</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/medications">Leki</a>
-                </li>
-            </AuthorizeView>
-            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
-                <li class="nav-item">
-                    <a class="nav-link" href="/rejestratorka">Panel rejestracji</a>
-                </li>
-            </AuthorizeView>
-            <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")">
-                <li class="nav-item">
-                    <a class="nav-link" href="/patients">Pacjenci</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/visits">Wizyty</a>
-                </li>
-            </AuthorizeView>
-        </ul>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-        <ul class="navbar-nav ms-auto">
-            <AuthorizeView>
-                <Authorized>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Strona glowna</a>
+                </li>
+                <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin},{Roles.Lekarz}")">
                     <li class="nav-item">
-                        <a class="nav-link" href="/Account/Manage">@context.User.Identity?.Name</a>
+                        <a class="nav-link" href="/patients">Pacjenci</a>
                     </li>
                     <li class="nav-item">
-                        <form action="/Account/Logout" method="post" class="d-inline">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="returnUrl" value="" />
-                            <button type="submit" class="btn btn-link nav-link">Wyloguj</button>
-                        </form>
+                        <a class="nav-link" href="/visits">Wizyty</a>
                     </li>
-                </Authorized>
-                <NotAuthorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="@($"{Roles.Lekarz},{Roles.Admin}")">
                     <li class="nav-item">
-                        <a class="nav-link" href="/Account/Register">Rejestracja</a>
+                        <a class="nav-link" href="/lekarz">Panel lekarza</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/Account/Login">Logowanie</a>
+                        <a class="nav-link" href="/medications">Leki</a>
                     </li>
-                </NotAuthorized>
-            </AuthorizeView>
-        </ul>
+                </AuthorizeView>
+                <AuthorizeView Roles="@($"{Roles.Rejestratorka},{Roles.Admin}")">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/rejestratorka">Rejestracja</a>
+                    </li>
+                </AuthorizeView>
+                <AuthorizeView Roles="@Roles.Admin">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" href="/admin">Panel administratora</a></li>
+                            <li><a class="dropdown-item" href="/admin/doctors">Lekarze</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/reports/costs">Raport kosztow</a></li>
+                        </ul>
+                    </li>
+                </AuthorizeView>
+            </ul>
+
+            <ul class="navbar-nav ms-auto">
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Account/Manage">
+                                <span class="badge bg-light text-primary me-1">&#128100;</span>@context.User.Identity?.Name
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <form action="/Account/Logout" method="post" class="d-inline">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="returnUrl" value="" />
+                                <button type="submit" class="btn btn-outline-light btn-sm ms-2">Wyloguj</button>
+                            </form>
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Account/Register">Rejestracja</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm ms-2" href="/Account/Login">Logowanie</a>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
     </div>
 </nav>
