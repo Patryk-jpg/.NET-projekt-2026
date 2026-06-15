@@ -338,11 +338,71 @@ public class PatientServiceTests
     [Fact]
     public async Task SoftDeleteAsync_ZwracaFalse_GdyPacjentNieIstnieje()
     {
-        // UI pokazuje przycisk "Usun" tylko dla istniejacych rekordow,
-        // ale serwis i tak musi byc odporny na nieistniejace Id.
         var (service, _) = BuildSut();
 
         var ok = await service.SoftDeleteAsync(123);
+
+        Assert.False(ok);
+    }
+
+    [Fact]
+    public async Task SoftDeleteAsync_UstawiaDeletedAt()
+    {
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        var before = DateTime.UtcNow;
+        await service.SoftDeleteAsync(1);
+
+        var dto = await service.GetByIdAsync(1, includeDeleted: true);
+        Assert.NotNull(dto);
+        Assert.True(dto.DeletedAt.HasValue);
+        Assert.True(dto.DeletedAt.Value >= before);
+    }
+
+    [Fact]
+    public async Task AnonymizeAsync_ZastepujeDaneOsobowe()
+    {
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        var ok = await service.AnonymizeAsync(1);
+
+        Assert.True(ok);
+        var dto = await service.GetByIdAsync(1, includeDeleted: true);
+        Assert.NotNull(dto);
+        Assert.True(dto.IsDeleted);
+        Assert.True(dto.AnonymizedAt.HasValue);
+        Assert.Equal("ANONIMIZOWANY", dto.FirstName);
+        Assert.Equal("ANONIMIZOWANY", dto.LastName);
+        Assert.Equal("00000000000", dto.Pesel);
+        Assert.Equal("ANONIMIZOWANY", dto.InsuranceNumber);
+    }
+
+    [Fact]
+    public async Task AnonymizeAsync_Idempotentna_NieNadpisujeAnonymizedAt()
+    {
+        var (service, seed) = BuildSut();
+        seed.Patients.Add(SamplePatient(1, "Jan", "Kowalski", "90010100001"));
+        await seed.SaveChangesAsync();
+
+        await service.AnonymizeAsync(1);
+        var first = (await service.GetByIdAsync(1, includeDeleted: true))!.AnonymizedAt;
+
+        await service.AnonymizeAsync(1);
+        var second = (await service.GetByIdAsync(1, includeDeleted: true))!.AnonymizedAt;
+
+        Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public async Task AnonymizeAsync_ZwracaFalse_GdyPacjentNieIstnieje()
+    {
+        var (service, _) = BuildSut();
+
+        var ok = await service.AnonymizeAsync(999);
 
         Assert.False(ok);
     }

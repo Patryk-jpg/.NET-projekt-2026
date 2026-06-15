@@ -30,6 +30,8 @@ public partial class VisitMapper
     [MapperIgnoreSource(nameof(Patient.Phone))]
     [MapperIgnoreSource(nameof(Patient.Email))]
     [MapperIgnoreSource(nameof(Patient.IsDeleted))]
+    [MapperIgnoreSource(nameof(Patient.DeletedAt))]
+    [MapperIgnoreSource(nameof(Patient.AnonymizedAt))]
     [MapperIgnoreSource(nameof(Patient.CreatedAt))]
     [MapperIgnoreSource(nameof(Patient.MedicalRecord))]
     [MapperIgnoreSource(nameof(Patient.Visits))]
