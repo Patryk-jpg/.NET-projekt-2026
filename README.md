@@ -104,3 +104,15 @@ Najwazniejsze ustawienia:
 Przyklad uzycia znajduje sie w `CostReportPdfService`: blad generowania PDF raportu kosztow jest logowany przez `logger.LogError(...)`, bez dopisywania danych wrazliwych pacjenta do komunikatu.
 
 Pipeline działa na `ubuntu-latest` — środowisko czyste przy każdym uruchomieniu.
+
+## BackgroundService raportu wizyt
+
+`UpcomingVisitsReportBackgroundService` generuje raport jutrzejszych wizyt. Domyslnie usluga uruchamia sie przy starcie aplikacji, a potem co 24 godziny.
+
+Konfiguracja znajduje sie w sekcji `UpcomingVisitsReport` w `ClinicManager/appsettings.json`. W trybie testowym (`Smtp.Enabled=false`) PDF jest zapisywany lokalnie jako `reports/upcoming_visits.pdf`. Po ustawieniu `Smtp.Enabled=true` oraz danych serwera SMTP usluga wysyla e-mail do administratora z zalacznikiem PDF.
+
+## Endpoint API i test NBomber
+
+Endpoint `GET /api/visits/active` zwraca aktywne wizyty (`Planned`, `InProgress`) razem z danymi pacjenta i lekarza. OpenAPI jest dostepne pod adresem `/openapi/v1.json`.
+
+Test wydajnosciowy znajduje sie w `PerformanceTests`. Najpierw uruchom aplikacje, potem w drugim terminalu wykonaj `dotnet run --project .\PerformanceTests\PerformanceTests.csproj -- http://localhost:5187`. Scenariusz wysyla okolo 100 zapytan: 50 requestow na sekunde przez 2 sekundy, a raport NBomber zapisuje w katalogu `nbomber-report`.

@@ -10,6 +10,7 @@ obj/
 *.log
 wwwroot/uploads/
 logs/
+nbomber-report/
 appsettings.Development.json
 *.db
 

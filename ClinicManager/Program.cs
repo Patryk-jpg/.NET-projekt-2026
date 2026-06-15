@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ClinicManager.BackgroundServices;
 using ClinicManager.Components;
 using ClinicManager.Components.Account;
+using ClinicManager.Configuration;
 using ClinicManager.Core.Constants;
 using ClinicManager.Core.DTOs;
 using ClinicManager.Core.Interfaces;
+using ClinicManager.Endpoints;
 using ClinicManager.Infrastructure.Data;
 using ClinicManager.Infrastructure.Mappers;
 using ClinicManager.Infrastructure.Services;
@@ -21,6 +24,7 @@ builder.Host.UseNLog();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddOpenApi();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -77,6 +81,10 @@ builder.Services.AddScoped<IVisitMedicalService, VisitMedicalService>();
 builder.Services.AddScoped<IVisitPdfService, VisitPdfService>();
 builder.Services.AddScoped<ICostReportService, CostReportService>();
 builder.Services.AddScoped<ICostReportPdfService, CostReportPdfService>();
+builder.Services.Configure<UpcomingVisitsReportOptions>(
+    builder.Configuration.GetSection("UpcomingVisitsReport"));
+builder.Services.AddScoped<IUpcomingVisitsReportService, UpcomingVisitsReportService>();
+builder.Services.AddHostedService<UpcomingVisitsReportBackgroundService>();
 
 var app = builder.Build();
 
@@ -101,6 +109,8 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapOpenApi();
+app.MapVisitsApi();
 app.MapGet("/visits/{id:int}/pdf", async (
         int id,
         IVisitPdfService visitPdfService,
