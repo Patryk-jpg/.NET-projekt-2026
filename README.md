@@ -180,7 +180,6 @@ W repozytorium sa przygotowane raporty wymagane do oddania:
 |------|------|
 | `raport-indeksy.pdf` | Opis indeksow EF Core i ich uzasadnienie. |
 | `raport-sql-profiler.pdf` | Opis logowania zapytan SQL / profilowania EF Core. |
-| `raport-nadchodzace-wizyty.pdf` | Opis BackgroundService generujacego raport jutrzejszych wizyt. |
 | `nbomber-report.pdf` | Opis scenariusza NBomber i metryk testu wydajnosciowego. |
 
 Aplikacja generuje tez pliki runtime:
@@ -189,7 +188,7 @@ Aplikacja generuje tez pliki runtime:
 - `nbomber-report/` po recznym uruchomieniu NBomber,
 - `logs/errors.log` dla logow NLog.
 
-Katalogi runtime sa lokalnymi artefaktami i nie musza byc commitowane.
+Katalogi runtime sa lokalnymi plikami i nie musza byc commitowane.
 
 ## Indeksy i profiler SQL
 
@@ -237,7 +236,7 @@ W trybie testowym PDF jest zapisywany jako:
 ClinicManager/reports/upcoming_visits.pdf
 ```
 
-Po ustawieniu `UpcomingVisitsReport:Smtp:Enabled=true` oraz danych SMTP usluga wysyla e-mail z zalacznikiem `upcoming_visits.pdf`.
+Po ustawieniu `UpcomingVisitsReport:Smtp:Enabled=true` oraz danych SMTP usluga wysylalby e-mail z zalacznikiem `upcoming_visits.pdf`.
 
 ## Endpoint API i OpenAPI
 
@@ -323,25 +322,7 @@ docker build --file .\ClinicManager\Dockerfile --tag clinicmanager:local .
 
 ## Trello
 
-Plan prac jest opisany w `ClinicManager/TrelloPlan.md`. Plik zawiera karty US-01 do US-22, checklisty, DoD, etapy prac, konwencje branchy i opis minimalnego planu na zaliczenie.
+Plan prac jest opisany w `ClinicManager/TrelloPlan.md`. Plik zawiera karty US-01 do US-23, checklisty, DoD, etapy prac, konwencje branchy i opis minimalnego planu na zaliczenie.
 
-Dokumenty lokalne typu `ClinicManager/TrelloPlan.md`, `ClinicManager/polecenie.md`, `ClinicManager/TeamOrganization.md` sa ignorowane przez git zgodnie z ustaleniami zespolu, ale byly uzywane jako dokumentacja robocza podczas implementacji.
 
-## Instrukcja oddania
 
-Przed oddaniem warto sprawdzic:
-
-```powershell
-dotnet build .\ClinicManager.sln --no-restore
-dotnet test .\ClinicManager.sln --no-restore
-dotnet build .\PerformanceTests\PerformanceTests.csproj --no-restore
-```
-
-Nastepnie:
-
-1. Uruchomic aplikacje lokalnie.
-2. Zweryfikowac logowanie kontami testowymi.
-3. Pokazac dane demonstracyjne.
-4. Pokazac raporty PDF i endpoint `/api/visits/active`.
-5. Pokazac wynik NBomber albo raport `nbomber-report.pdf`.
-6. Pokazac GitHub Actions dla PR/pusha.
